@@ -5,6 +5,7 @@
 #pragma once
 
 #include <Lumiere/App.h>
+#include "Lumiere/Actor.h"
 
 namespace sun
 {
@@ -15,7 +16,9 @@ namespace sun
 
     private:
         #pragma region Members
-
+        std::unique_ptr<lum::gpu::Shader> m_mainShader;
+        std::vector<lum::Actor> m_actors;
+        std::unique_ptr<lum::gpu::Buffer> m_cameraData;
         #pragma endregion Members
 
         void Init() override;
