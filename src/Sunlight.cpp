@@ -5,6 +5,7 @@
 #include "Sunlight.h"
 
 #include "Lumiere/Actor.h"
+#include "Lumiere/ResourcesManager.h"
 
 namespace sun
 {
@@ -20,12 +21,14 @@ namespace sun
 
         m_cameraData = std::make_unique<lum::gpu::Buffer>(lum::gpu::Buffer::BufferType::Uniform);
 
-        m_mainShader = std::make_unique<lum::gpu::Shader>();
-        m_mainShader->AddShaderFromFile(lum::gpu::Shader::Fragment, "shaders/default.frag");
-        m_mainShader->AddShaderFromFile(lum::gpu::Shader::Vertex, "shaders/default.vert");
-        m_mainShader->Create();
+        std::vector<lum::gpu::Shader::ShaderSource> shaderSources = {
+            {lum::gpu::Shader::Vertex, "shaders/default.vert"},
+            {lum::gpu::Shader::Fragment, "shaders/default.frag"}
+        };
+        lum::ResourcesManager::Instance()->CacheShader(lum::ResourcesManager::PBR_LIT_SHADER_KEY, shaderSources);
 
-        m_actors.emplace_back("resources/models/Cube/glTF/Cube.gltf");
+        //m_actors.emplace_back("resources/models/Cube/glTF/Cube.gltf");
+        m_actors.emplace_back("resources/models/backpack.obj");
 
         lum::gpu::GLUtils::ClearColor({.2f, .2f, .2f, 1.f});
         lum::gpu::GLUtils::SetDepthTesting(true);
@@ -42,5 +45,12 @@ namespace sun
 
         for (const lum::Actor& actor : m_actors)
             actor.Draw();
+
+        ImGui::Begin("tests");
+        {
+            if (ImGui::Button("Shader Reload"))
+                lum::ResourcesManager::Instance()->ShaderHotReload();
+        }
+        ImGui::End();
     }
 } // sun
