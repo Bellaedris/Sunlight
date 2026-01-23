@@ -5,7 +5,9 @@
 #pragma once
 
 #include <Lumiere/App.h>
-#include "Lumiere/Actor.h"
+
+#include "Lumiere/Renderer/RenderPipeline.h"
+#include "Lumiere/Renderer/SceneDesc.h"
 
 namespace sun
 {
@@ -16,8 +18,8 @@ namespace sun
 
     private:
         #pragma region Members
-        std::vector<lum::Actor> m_actors;
-        std::unique_ptr<lum::gpu::Buffer> m_cameraData;
+        lum::rdr::SceneDesc m_scene;
+        lum::rdr::RenderPipeline m_renderer;
         #pragma endregion Members
 
         void Init() override;
