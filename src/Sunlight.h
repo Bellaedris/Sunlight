@@ -25,7 +25,7 @@ namespace sun
         std::unique_ptr<ImGuiContext> m_imguiContext;
         std::shared_ptr<lum::rdr::SceneDesc> m_scene;
 
-        std::unique_ptr<lum::rdr::RenderPipeline> m_renderer;
+        std::shared_ptr<lum::rdr::RenderPipeline> m_renderer;
         std::unique_ptr<Editor> m_editor;
         #pragma endregion Members
 
