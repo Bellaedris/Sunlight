@@ -18,7 +18,7 @@ ViewportPanel::ViewportPanel(const std::shared_ptr<EditorState>& editorState)
 
 void ViewportPanel::Render()
 {
-    ImGui::Begin("Viewport", nullptr, ImGuiWindowFlags_NoScrollbar);
+    ImGui::Begin("Viewport", nullptr, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
     ImVec2 availableSize = ImGui::GetContentRegionAvail();
     if (m_lastViewportSize.x != availableSize.x || m_lastViewportSize.y != availableSize.y)
     {
