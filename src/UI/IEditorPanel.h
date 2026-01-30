@@ -6,6 +6,7 @@
 
 #include <Lumiere/Events/IEvent.h>
 #include <memory>
+#include <imgui/imgui.h>
 
 namespace sun::ui
 {
