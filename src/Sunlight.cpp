@@ -6,11 +6,14 @@
 
 #include "LumiereConfig.h"
 #include "Lumiere/ResourcesManager.h"
+#include "Lumiere/Renderer/Passes/Bloom.h"
 #include "Lumiere/Renderer/Passes/CompositeNPR.h"
 #include "Lumiere/Renderer/Passes/GBuffer.h"
 #include "Lumiere/Renderer/Passes/Outline.h"
 #include "Lumiere/Renderer/Passes/ShadeNPR.h"
 #include "Lumiere/Renderer/Passes/CompositeNPR.h"
+#include "Lumiere/Renderer/Passes/ShadePBR.h"
+#include "Lumiere/Renderer/Passes/Tonemap.h"
 #include "Lumiere/Utils/MeshLoader.h"
 
 namespace sun
@@ -33,13 +36,22 @@ void Sunlight::Init()
     m_scene->AddMesh("resources/models/DamagedHelmet/glTF/DamagedHelmet.gltf");
     //m_actors.emplace_back("resources/models/backpack.obj");
 
-    m_scene->Lights()->AddDirLight({-5, 0, 0}, 1.f, {1, 1, 1});
+    m_scene->Lights()->AddDirLight({0, -1, -1}, 3.f, {1, 1, 1});
+    // m_scene->Lights()->AddDirLight({0, 0, 1}, 3.f, {1, 1, 1});
+    // m_scene->Lights()->AddDirLight({1, 0, 0}, 3.f, {1, 1, 1});
+    // m_scene->Lights()->AddDirLight({-1, 0, 0}, 3.f, {1, 1, 1});
 
     // renderer setup
     m_renderer->AddPass(new lum::rdr::GBuffer(m_window->Width(), m_window->Height()));
-    m_renderer->AddPass(new lum::rdr::Outline(m_window->Width(), m_window->Height()));
-    m_renderer->AddPass(new lum::rdr::ShadeNPR(m_window->Width(), m_window->Height()));
-    m_renderer->AddPass(new lum::rdr::CompositeNPR(m_window->Width(), m_window->Height()));
+    m_renderer->AddPass(new lum::rdr::ShadePBR(m_window->Width(), m_window->Height()));
+    m_renderer->AddPass(new lum::rdr::Bloom(m_window->Width(), m_window->Height()));
+    m_renderer->AddPass(new lum::rdr::Tonemap(m_window->Width(), m_window->Height()));
+
+    // npr
+    // m_renderer->AddPass(new lum::rdr::GBuffer(m_window->Width(), m_window->Height()));
+    // m_renderer->AddPass(new lum::rdr::Outline(m_window->Width(), m_window->Height()));
+    // m_renderer->AddPass(new lum::rdr::ShadeNPR(m_window->Width(), m_window->Height()));
+    // m_renderer->AddPass(new lum::rdr::CompositeNPR(m_window->Width(), m_window->Height()));
 
     lum::gpu::GLUtils::ClearColor({.2f, .2f, .2f, 1.f});
     lum::gpu::GLUtils::SetDepthTesting(true);
