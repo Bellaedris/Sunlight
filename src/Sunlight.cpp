@@ -6,7 +6,6 @@
 
 #include "LumiereConfig.h"
 #include "Lumiere/ResourcesManager.h"
-#include "Lumiere/Renderer/Passes/Bloom.h"
 #include "Lumiere/Renderer/Passes/CompositeNPR.h"
 #include "Lumiere/Renderer/Passes/GBuffer.h"
 #include "Lumiere/Renderer/Passes/Outline.h"
@@ -14,6 +13,9 @@
 #include "Lumiere/Renderer/Passes/CompositeNPR.h"
 #include "Lumiere/Renderer/Passes/ShadePBR.h"
 #include "Lumiere/Renderer/Passes/Tonemap.h"
+#include "Lumiere/Renderer/Passes/ChromaticAberration.h"
+#include "Lumiere/Renderer/Passes/Bloom.h"
+#include "Lumiere/Renderer/Passes/Vignette.h"
 #include "Lumiere/Utils/MeshLoader.h"
 
 namespace sun
@@ -46,6 +48,8 @@ void Sunlight::Init()
     m_renderer->AddPass(new lum::rdr::ShadePBR(m_window->Width(), m_window->Height()));
     m_renderer->AddPass(new lum::rdr::Bloom(m_window->Width(), m_window->Height()));
     m_renderer->AddPass(new lum::rdr::Tonemap(m_window->Width(), m_window->Height()));
+    m_renderer->AddPass(new lum::rdr::ChromaticAberration(m_window->Width(), m_window->Height()));
+    m_renderer->AddPass(new lum::rdr::Vignette(m_window->Width(), m_window->Height()));
 
     // npr
     // m_renderer->AddPass(new lum::rdr::GBuffer(m_window->Width(), m_window->Height()));
