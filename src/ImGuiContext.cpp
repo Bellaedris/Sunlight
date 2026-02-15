@@ -7,6 +7,7 @@
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_glfw.h"
 #include "imgui/imgui_impl_opengl3.h"
+#include "imgui/implot.h"
 
 namespace sun {
 ImGuiContext::ImGuiContext(const std::shared_ptr<lum::Window>& window)
@@ -14,6 +15,7 @@ ImGuiContext::ImGuiContext(const std::shared_ptr<lum::Window>& window)
 {
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
+    ImPlot::CreateContext();
 
     ImGuiIO& io = ImGui::GetIO();
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
@@ -28,6 +30,7 @@ ImGuiContext::~ImGuiContext()
 {
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
+    ImPlot::DestroyContext();
     ImGui::DestroyContext();
 }
 
