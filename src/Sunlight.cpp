@@ -15,6 +15,8 @@
 #include "Lumiere/Renderer/Passes/Tonemap.h"
 #include "Lumiere/Renderer/Passes/ChromaticAberration.h"
 #include "Lumiere/Renderer/Passes/Bloom.h"
+#include "Lumiere/Renderer/Passes/ColorAdjustments.h"
+#include "Lumiere/Renderer/Passes/DepthOfField.h"
 #include "Lumiere/Renderer/Passes/Vignette.h"
 #include "Lumiere/Utils/MeshLoader.h"
 
@@ -26,30 +28,31 @@ Sunlight::Sunlight(int width, int height)
     , m_imguiContext(std::make_unique<ImGuiContext>(m_window))
     , m_scene(std::make_shared<lum::rdr::SceneDesc>())
     , m_renderer(std::make_shared<lum::rdr::RenderPipeline>(m_internalEvents))
-    , m_editor(std::make_unique<Editor>(m_internalEvents, m_scene, m_renderer))
+    , m_profilerGPU(std::make_shared<lum::ProfilerGPU>())
+    , m_editor(std::make_unique<Editor>(m_internalEvents, m_scene, m_renderer, m_profilerGPU))
 {
 }
 
 void Sunlight::Init()
 {
-    m_camera = std::make_unique<lum::rdr::Camera>(glm::vec3(0, 0, 0), m_window->AspectRatio(), 70.f, .01f, 1000.f);
+    m_camera = std::make_unique<lum::rdr::Camera>(glm::vec3(0, 0, 0), m_window->AspectRatio(), 70.f, .01f, 100.f);
     m_scene->SetMainCamera(m_camera.get());
 
-    m_scene->AddMesh("resources/models/DamagedHelmet/glTF/DamagedHelmet.gltf");
+    m_scene->AddMesh("resources/models/Sponza/glTF/Sponza.gltf");
+    //m_scene->AddMesh("resources/models/bistrogltf/bistro.gltf");
     //m_actors.emplace_back("resources/models/backpack.obj");
 
-    m_scene->Lights()->AddDirLight({0, -1, -1}, 3.f, {1, 1, 1});
-    // m_scene->Lights()->AddDirLight({0, 0, 1}, 3.f, {1, 1, 1});
-    // m_scene->Lights()->AddDirLight({1, 0, 0}, 3.f, {1, 1, 1});
-    // m_scene->Lights()->AddDirLight({-1, 0, 0}, 3.f, {1, 1, 1});
+    m_scene->Lights()->AddDirLight({0, -1, -.5}, 3.f, {1, 1, 1});
 
     // renderer setup
-    m_renderer->AddPass(new lum::rdr::GBuffer(m_window->Width(), m_window->Height()));
-    m_renderer->AddPass(new lum::rdr::ShadePBR(m_window->Width(), m_window->Height()));
-    m_renderer->AddPass(new lum::rdr::Bloom(m_window->Width(), m_window->Height()));
-    m_renderer->AddPass(new lum::rdr::Tonemap(m_window->Width(), m_window->Height()));
-    m_renderer->AddPass(new lum::rdr::ChromaticAberration(m_window->Width(), m_window->Height()));
-    m_renderer->AddPass(new lum::rdr::Vignette(m_window->Width(), m_window->Height()));
+    m_renderer->AddPass(std::make_shared<lum::rdr::GBuffer>(m_window->Width(), m_window->Height()));
+    m_renderer->AddPass(std::make_shared<lum::rdr::ShadePBR>(m_window->Width(), m_window->Height()));
+    m_renderer->AddPass(std::make_shared<lum::rdr::Bloom>(m_window->Width(), m_window->Height()));
+    m_renderer->AddPass(std::make_shared<lum::rdr::DepthOfField>(m_window->Width(), m_window->Height()));
+    m_renderer->AddPass(std::make_shared<lum::rdr::Tonemap>(m_window->Width(), m_window->Height()));
+    m_renderer->AddPass(std::make_shared<lum::rdr::ChromaticAberration>(m_window->Width(), m_window->Height()));
+    m_renderer->AddPass(std::make_shared<lum::rdr::ColorAdjustments>(m_window->Width(), m_window->Height()));
+    m_renderer->AddPass(std::make_shared<lum::rdr::Vignette>(m_window->Width(), m_window->Height()));
 
     // npr
     // m_renderer->AddPass(new lum::rdr::GBuffer(m_window->Width(), m_window->Height()));
@@ -65,7 +68,15 @@ void Sunlight::Render()
 {
     lum::gpu::GLUtils::Clear();
 
-    m_renderer->Render(*m_scene);
+    lum::rdr::FrameData frame
+    {
+        .scene = m_scene,
+        .frameIndex = m_frameIndex,
+        .profilerGPU = m_profilerGPU
+    };
+    m_profilerGPU->BeginFrame();
+    m_renderer->Render(frame);
+    m_profilerGPU->EndFrame();
 }
 
 void Sunlight::RenderUI()

@@ -26,6 +26,7 @@ namespace sun
         std::shared_ptr<lum::rdr::SceneDesc> m_scene;
 
         std::shared_ptr<lum::rdr::RenderPipeline> m_renderer;
+        std::shared_ptr<lum::ProfilerGPU> m_profilerGPU;
         std::unique_ptr<Editor> m_editor;
         #pragma endregion Members
 

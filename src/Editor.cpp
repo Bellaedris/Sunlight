@@ -9,6 +9,7 @@
 #include "imgui/imgui.h"
 #include "Lumiere/ResourcesManager.h"
 #include "Lumiere/Events/RenderEvents.h"
+#include "UI/ProfilerPanel.h"
 #include "UI/RenderSettingsPanel.h"
 #include "UI/ViewportPanel.h"
 
@@ -18,7 +19,8 @@ Editor::Editor
 (
     const std::shared_ptr<lum::evt::EventHandler> &  events,
     const std::shared_ptr<lum::rdr::SceneDesc> &     scene,
-    const std::shared_ptr<lum::rdr::RenderPipeline> &pipeline
+    const std::shared_ptr<lum::rdr::RenderPipeline> &pipeline,
+    const std::shared_ptr<lum::ProfilerGPU>& profiler
 )
     : m_events(events)
     , m_state(std::make_shared<EditorState>())
@@ -29,6 +31,7 @@ Editor::Editor
 
     m_panels.emplace_back(std::make_unique<ui::ViewportPanel>(m_state));
     m_panels.emplace_back(std::make_unique<ui::RenderSettingsPanel>(m_pipeline));
+    m_panels.emplace_back(std::make_unique<ui::ProfilerPanel>(profiler));
 }
 
 void Editor::Render()
