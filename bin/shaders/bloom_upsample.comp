@@ -1,0 +1,44 @@
+#version 460
+
+uniform sampler2D previousMip;
+layout(rgba16f, binding = 1) uniform image2D result;
+
+uniform int mipLevel;
+
+layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
+void main()
+{
+    ivec2 texel = ivec2(gl_GlobalInvocationID.xy);
+    ivec2 size = imageSize(result);
+    if(texel.x > size.x || texel.y > size.y)
+        return;
+
+    float smallerImage = float(mipLevel) + 1.f;
+    //vec2 uv = (vec2(texel) + vec2(.5f)) / vec2(imageSize(result));
+    // IMPORTANT DETAIL THAT TOOK ME A LONG TIME TO UNDERSTAND: beforehand, we were computing UVs using the current texture
+    // coordinates offsetted, aka the current mip level, which is bigger. But we sampled a smaller mip with these uvs.
+    // The .5 offset to get to the texel center is NOT correctly mapped!!! .5 for the current size is fine, but it gets
+    // bigger for a lower texture size!!
+    vec2 uv = (vec2(texel) * .5f + vec2(.5f)) / vec2(textureSize(previousMip, mipLevel + 1));
+
+    vec2 texelSize = vec2(.005f);//1.f / vec2(textureSize(previousMip, mipLevel - 1));
+
+    // upsample by combining a blurred current mip with the previous blurred mip
+    // blur with a 3x3 tent filter
+    vec3 tl = textureLod(previousMip, uv + vec2(-texelSize.x, -texelSize.y), smallerImage).xyz;
+    vec3 tm = textureLod(previousMip, uv + vec2(0           , -texelSize.y), smallerImage).xyz * 2.f;
+    vec3 tr = textureLod(previousMip, uv + vec2( texelSize.x, -texelSize.y), smallerImage).xyz;
+
+    vec3 ml = textureLod(previousMip, uv + vec2(-texelSize.x, 0), smallerImage).xyz * 2.f;
+    vec3 mm = textureLod(previousMip, uv + vec2(0           , 0), smallerImage).xyz * 4.f;
+    vec3 mr = textureLod(previousMip, uv + vec2( texelSize.x, 0), smallerImage).xyz * 2.f;
+
+    vec3 bl = textureLod(previousMip, uv + vec2(-texelSize.x, texelSize.y), smallerImage).xyz;
+    vec3 bm = textureLod(previousMip, uv + vec2(0           , texelSize.y), smallerImage).xyz * 2.f;
+    vec3 br = textureLod(previousMip, uv + vec2( texelSize.x, texelSize.y), smallerImage).xyz;
+
+    vec3 blurred = (tl + tm + tr + ml + mm + mr + bl + bm + br) / 16.f;
+
+    vec3 upsampled = blurred + imageLoad(result, texel).xyz;
+    imageStore(result, texel, vec4(upsampled, 1));
+}

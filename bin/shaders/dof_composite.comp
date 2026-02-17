@@ -1,0 +1,23 @@
+#version 460
+
+uniform sampler2D coc;
+uniform sampler2D nearBlur;
+uniform sampler2D farBlur;
+uniform sampler2D frame;
+layout(rgba16f, binding = 4) writeonly uniform image2D result;
+
+layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
+void main()
+{
+    ivec2 texel = ivec2(gl_GlobalInvocationID.xy);
+    vec2 size = vec2(imageSize(result));
+    vec2 uv = vec2(texel) / size;
+
+    vec2 cocNearFar = texture(coc, uv).xy;
+    vec3 color = texture(frame, uv).xyz;
+    //vec3 blurred = cocNearFar.x > 0 ? texture(nearBlur, uv).xyz : texture(farBlur, uv).xyz;
+
+    vec3 final = mix(color, texture(farBlur, uv).xyz, cocNearFar.y);
+    final = mix(final, texture(nearBlur, uv).xyz, cocNearFar.x);
+    imageStore(result, texel, vec4(final, 1.f));
+}

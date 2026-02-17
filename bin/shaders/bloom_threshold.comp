@@ -1,0 +1,19 @@
+#version 460
+
+uniform sampler2D source;
+layout(rgba16f, binding = 1) writeonly uniform image2D result;
+
+layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
+void main()
+{
+    ivec2 texel = ivec2(gl_GlobalInvocationID.xy);
+    vec2 size = vec2(imageSize(result));
+    vec2 uv = texel / size;
+
+    vec3 color = texture(source, uv).xyz;
+    if(mipLevel == mipChainSize)
+        upsampled = blurred;
+    else
+        upsampled = blurred + textureLod(previousMip, uv, mipLevel - 1).xyz;
+    imageStore(result, texel, vec4(upsampled, 1));
+}

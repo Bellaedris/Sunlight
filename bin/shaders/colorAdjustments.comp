@@ -1,0 +1,60 @@
+#version 460
+
+uniform sampler2D source;
+layout(rgba8, binding = 1) writeonly uniform image2D destination;
+
+uniform float brightness;
+uniform float contrast;
+uniform float saturation;
+
+// many thanks to https://www.shadertoy.com/view/XdcXzn
+
+mat4 Brightness()
+{
+    return mat4( 1, 0, 0, 0,
+    0, 1, 0, 0,
+    0, 0, 1, 0,
+    brightness, brightness, brightness, 1 );
+}
+
+mat4 Contrast()
+{
+    float t = ( 1.0 - contrast ) / 2.0;
+
+    return mat4( contrast, 0, 0, 0,
+    0, contrast, 0, 0,
+    0, 0, contrast, 0,
+    t, t, t, 1 );
+}
+
+mat4 Saturation()
+{
+    vec3 luminance = vec3( 0.3086, 0.6094, 0.0820 );
+
+    float oneMinusSat = 1.0 - saturation;
+
+    vec3 red = vec3( luminance.x * oneMinusSat );
+    red+= vec3( saturation, 0, 0 );
+
+    vec3 green = vec3( luminance.y * oneMinusSat );
+    green += vec3( 0, saturation, 0 );
+
+    vec3 blue = vec3( luminance.z * oneMinusSat );
+    blue += vec3( 0, 0, saturation );
+
+    return mat4( red,     0,
+    green,   0,
+    blue,    0,
+    0, 0, 0, 1 );
+}
+
+layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
+void main()
+{
+    ivec2 texel = ivec2(gl_GlobalInvocationID.xy);
+    vec2 uv = vec2(texel) / vec2(imageSize(destination));
+
+    vec4 color = Brightness() * Contrast() * Saturation() * texture(source, uv);
+
+    imageStore(destination, texel, color);
+}

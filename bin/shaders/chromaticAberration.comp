@@ -1,0 +1,38 @@
+#version 460
+
+uniform sampler2D source;
+layout(rgba8, binding = 1) writeonly uniform image2D destination;
+
+uniform float intensity;
+uniform int samples;
+uniform int exponent;
+
+layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
+void main()
+{
+    ivec2 texel = ivec2(gl_GlobalInvocationID.xy);
+    vec2 uv = vec2(texel) / vec2(imageSize(destination));
+
+    // for now the center is the center of the screen, in the future we might want to derive a center from depth of field,
+    // kind of a focus point
+    vec2 direction = uv - vec2(.5);
+
+    // Thanks XOR!!! https://mini.gmshaders.com/p/gm-shaders-mini-chromatic-aberration
+    // i modified the thing a little so the radial effect only goes outwards the circle center, and used a pow to
+    // control how far from the screen edges the effect is more visible
+    vec3 totalColor = vec3(.0f);
+    vec3 totalWeight = vec3(.0f);
+    float maxOffset = samples * intensity;
+    for(float i = 0.f; i < 1.f; i += 1.f / samples)
+    {
+        vec2 offsetUv = mix(uv, vec2(.5f), pow(i * intensity, exponent));
+        vec3 color = texture(source, offsetUv).xyz;
+
+        vec3 weight = vec3(i, 1.f - abs(i * 2.f - 1.f), 1.f - i);
+        totalColor += color * weight;
+        totalWeight += weight;
+    }
+    totalColor /= totalWeight;
+
+    imageStore(destination, texel, vec4(totalColor, 1));
+}

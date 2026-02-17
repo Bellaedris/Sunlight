@@ -1,0 +1,50 @@
+#version 460
+
+uniform sampler2D GBufferDepth;
+layout(rg16f, binding = 1) writeonly uniform image2D separation;
+
+uniform float focusDistance;
+uniform float focusRange;
+uniform float zNear;
+uniform float zFar;
+
+// reproject depth to get a [0; zFar] range
+float ndcToLinearDepth(float ndc)
+{
+    float a = zFar / (zNear - zFar);
+    float b = zFar * zNear / (zNear - zFar);
+
+    return -b / (ndc + a);
+}
+
+layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
+void main()
+{
+    ivec2 texel = ivec2(gl_GlobalInvocationID.xy);
+    vec2 uv = (vec2(texel) + vec2(.5f)) / vec2(imageSize(separation));
+
+    float depth = -ndcToLinearDepth(texture(GBufferDepth, uv).x);
+    float nearBegin = max(0.f, focusDistance - focusRange);
+    float nearEnd = focusDistance;
+    float farBegin = focusDistance;
+    float farEnd = focusDistance + focusRange;
+
+    float nearWrite = .0f;
+    float farWrite = .0f;
+    if(depth < nearEnd)
+    {
+        if (depth < nearBegin)
+            nearWrite = 1.f;
+        else
+            nearWrite = (depth - nearEnd) / (nearBegin - nearEnd);
+    }
+    else
+    {
+        if(depth > farEnd)
+            farWrite = 1.f;
+        else
+            farWrite = (depth - farBegin) / (farEnd - farBegin);
+    }
+
+    imageStore(separation, texel, vec4(nearWrite, farWrite, 0, 0));
+}
