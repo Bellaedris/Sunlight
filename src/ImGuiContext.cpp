@@ -9,6 +9,9 @@
 #include "imgui/imgui_impl_opengl3.h"
 #include "imgui/implot.h"
 
+#include <filesystem>
+#include <iostream>
+
 namespace sun {
 ImGuiContext::ImGuiContext(const std::shared_ptr<lum::Window>& window)
     : m_window(window)
@@ -22,12 +25,33 @@ ImGuiContext::ImGuiContext(const std::shared_ptr<lum::Window>& window)
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;         // IF using Docking Branch
 
+    if (std::filesystem::exists(IMGUI_INI_LOCATION) == false)
+    {
+        std::cerr << "Couldn't find imgui config file at " << IMGUI_INI_LOCATION << "\n";
+    }
+    else
+    {
+        io.IniFilename = nullptr;
+
+        ImGui::LoadIniSettingsFromDisk(IMGUI_INI_LOCATION);
+    }
+
     ImGui_ImplGlfw_InitForOpenGL(window->GetWindow(), true);
     ImGui_ImplOpenGL3_Init();
+
 }
 
 ImGuiContext::~ImGuiContext()
 {
+    if (std::filesystem::exists(IMGUI_INI_LOCATION) == false)
+    {
+        std::cerr << "Couldn't find imgui config file at " << IMGUI_INI_LOCATION << "\n";
+    }
+    else
+    {
+        ImGui::SaveIniSettingsToDisk(IMGUI_INI_LOCATION);
+    }
+
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImPlot::DestroyContext();
