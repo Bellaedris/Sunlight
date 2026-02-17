@@ -1,4 +1,8 @@
-bin/
+bin/*
 cmake-build-debug/
 cmake-build-release/
 .idea/
+/src/MiniGLConfig.h
+!bin/shaders
+!bin/resources
+!bin/config
