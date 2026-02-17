@@ -1,0 +1,28 @@
+#version 460
+
+uniform sampler2D source;
+layout(rgba8, binding = 1) writeonly uniform image2D destination;
+
+uniform float distortionTightness;
+uniform float distortionIntensity;
+
+layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
+void main()
+{
+    ivec2 texel = ivec2(gl_GlobalInvocationID.xy);
+    vec2 uv = vec2(texel) / vec2(textureSize(source, 0));
+    vec2 uvRemapped = uv * 2.f - 1.f;
+
+    // distance from origin [0; 0]
+    vec2 direction = normalize(uv - vec2(.5f));
+    float distortionMagnitude = abs(uvRemapped.x * uvRemapped.y);
+    distortionMagnitude = pow(distortionMagnitude, distortionTightness);
+
+    uv = uv + direction * distortionMagnitude * distortionIntensity;
+
+    vec3 color = texture(source, uv).xyz;
+    if(uv.x < .0f || uv.y < .0f || uv.x > 1.f || uv.y > 1.f)
+        color = vec3(.0f);
+
+    imageStore(destination, texel, vec4(color, 1));
+}

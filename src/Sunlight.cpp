@@ -17,6 +17,7 @@
 #include "Lumiere/Renderer/Passes/Bloom.h"
 #include "Lumiere/Renderer/Passes/ColorAdjustments.h"
 #include "Lumiere/Renderer/Passes/DepthOfField.h"
+#include "Lumiere/Renderer/Passes/LensDistortion.h"
 #include "Lumiere/Renderer/Passes/Vignette.h"
 #include "Lumiere/Utils/MeshLoader.h"
 
@@ -52,6 +53,7 @@ void Sunlight::Init()
     m_renderer->AddPass(std::make_shared<lum::rdr::Tonemap>(m_window->Width(), m_window->Height()));
     m_renderer->AddPass(std::make_shared<lum::rdr::ChromaticAberration>(m_window->Width(), m_window->Height()));
     m_renderer->AddPass(std::make_shared<lum::rdr::ColorAdjustments>(m_window->Width(), m_window->Height()));
+    m_renderer->AddPass(std::make_shared<lum::rdr::LensDistortion>(m_window->Width(), m_window->Height()));
     m_renderer->AddPass(std::make_shared<lum::rdr::Vignette>(m_window->Width(), m_window->Height()));
 
     // npr

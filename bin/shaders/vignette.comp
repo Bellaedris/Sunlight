@@ -4,6 +4,7 @@ uniform sampler2D source;
 layout(rgba8, binding = 1) writeonly uniform image2D destination;
 
 uniform float radius;
+uniform float tightness;
 
 /* Gradient noise from Jorge Jimenez's presentation: */
 /* http://www.iryoku.com/next-generation-post-processing-in-call-of-duty-advanced-warfare */
@@ -18,7 +19,7 @@ void main()
     ivec2 texel = ivec2(gl_GlobalInvocationID.xy);
     vec2 uv = vec2(texel) / vec2(textureSize(source, 0));
 
-    vec3 vignette = mix(1.f, 0f, distance(uv, vec2(.5f)) * radius) * texture(source, uv).xyz;
+    vec3 vignette = pow(mix(1.f, 0f, distance(uv, vec2(.5f)) * radius), tightness) * texture(source, uv).xyz;
 
     // dithering pattern using gradient noise to avoid color banding
     vignette += (1.0 / 255.0) * gradientNoise(vec2(texel)) - (0.5 / 255.0);
