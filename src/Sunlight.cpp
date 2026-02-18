@@ -15,6 +15,7 @@
 #include "Lumiere/Renderer/Passes/Tonemap.h"
 #include "Lumiere/Renderer/Passes/ChromaticAberration.h"
 #include "Lumiere/Renderer/Passes/Bloom.h"
+#include "Lumiere/Renderer/Passes/CameraSensor.h"
 #include "Lumiere/Renderer/Passes/ColorAdjustments.h"
 #include "Lumiere/Renderer/Passes/DepthOfField.h"
 #include "Lumiere/Renderer/Passes/LensDistortion.h"
@@ -48,6 +49,7 @@ void Sunlight::Init()
     // renderer setup
     m_renderer->AddPass(std::make_shared<lum::rdr::GBuffer>(m_window->Width(), m_window->Height()));
     m_renderer->AddPass(std::make_shared<lum::rdr::ShadePBR>(m_window->Width(), m_window->Height()));
+    m_renderer->AddPass(std::make_shared<lum::rdr::CameraSensor>(m_window->Width(), m_window->Height()));
     m_renderer->AddPass(std::make_shared<lum::rdr::Bloom>(m_window->Width(), m_window->Height()));
     m_renderer->AddPass(std::make_shared<lum::rdr::DepthOfField>(m_window->Width(), m_window->Height()));
     m_renderer->AddPass(std::make_shared<lum::rdr::Tonemap>(m_window->Width(), m_window->Height()));
