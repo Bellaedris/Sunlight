@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "EditorState.h"
+#include "Lumiere/RendererManager.h"
 #include "Lumiere/Events/EventHandler.h"
 #include "Lumiere/Renderer/RenderPipeline.h"
 #include "Lumiere/Renderer/SceneDesc.h"
@@ -21,9 +22,9 @@ private:
     std::shared_ptr<lum::evt::EventHandler> m_events;
     std::shared_ptr<EditorState> m_state;
     std::shared_ptr<lum::rdr::SceneDesc> m_scene;
-    std::shared_ptr<lum::rdr::RenderPipeline> m_pipeline;
+    std::shared_ptr<lum::RendererManager> m_pipeline;
 public:
-    Editor(const std::shared_ptr<lum::evt::EventHandler>& events, const std::shared_ptr<lum::rdr::SceneDesc>& scene, const std::shared_ptr<lum::rdr::RenderPipeline>& pipeline, const std::shared_ptr<lum::ProfilerGPU>& profiler);
+    Editor(const std::shared_ptr<lum::evt::EventHandler>& events, const std::shared_ptr<lum::rdr::SceneDesc>& scene, const std::shared_ptr<lum::RendererManager>& renderer, const std::shared_ptr<lum::ProfilerGPU>& profiler);
     void Render();
     void OnEvent(const std::shared_ptr<lum::evt::IEvent>& event);
 };

@@ -3,18 +3,21 @@
 //
 
 #pragma once
+#include "Lumiere/Node3D.h"
 #include "glm/vec2.hpp"
+#include "stduuid/uuid.h"
 
 namespace sun
 {
 /**
- * \brief Stores informations on the editor. A part of these informations are temporary and are only useful for the current
+ * \brief Stores information on the editor. A part of this information is temporary and are only useful for the current
  * session, the other part are persistent datas that are saved upon quitting to be loaded on the next session.
  */
 struct EditorState
 {
     struct
     {
+        lum::Node3D* m_selectedNode;
         bool shouldNotifyViewportChange {false};
     } temp;
 
