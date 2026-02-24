@@ -1,0 +1,16 @@
+#version 460 core
+
+uniform sampler2D ShadedNPR;
+uniform sampler2D Outlines;
+layout(rgba8, binding = 2) writeonly uniform image2D result;
+
+layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
+void main() {
+    ivec2 texel = ivec2(gl_GlobalInvocationID.xy);
+    vec2 size = vec2(imageSize(result));
+    vec2 uv = vec2(texel) / size;
+
+    vec3 shaded = texture(ShadedNPR, uv).xyz;
+    float outline = texture(Outlines, uv).x;
+    imageStore(result, texel, vec4(shaded * vec3(outline), 1.f));
+}
