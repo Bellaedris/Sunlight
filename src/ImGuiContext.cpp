@@ -8,6 +8,7 @@
 #include "imgui/imgui_impl_glfw.h"
 #include "imgui/imgui_impl_opengl3.h"
 #include "imgui/implot.h"
+#include "imgui/IconsFontAwesome4.h"
 
 #include <filesystem>
 #include <iostream>
@@ -24,6 +25,12 @@ ImGuiContext::ImGuiContext(const std::shared_ptr<lum::Window>& window)
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;         // IF using Docking Branch
+
+    io.Fonts->AddFontDefaultVector();
+    ImFontConfig config;
+    config.MergeMode = true;
+    config.GlyphMinAdvanceX = 13.0f; // Use if you want to make the icon monospaced
+    io.Fonts->AddFontFromFileTTF("config/fontawesome-webfont.ttf", 13.0f, &config);
 
     if (std::filesystem::exists(IMGUI_INI_LOCATION) == false)
     {
