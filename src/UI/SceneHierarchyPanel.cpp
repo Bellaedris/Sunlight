@@ -31,7 +31,7 @@ void SceneHierarchyPanel::RenderNode(const lum::Node3D& node, ImGuiTreeNodeFlags
     {
         int localFlags = flags;
         uuids::uuid nodeId = child->UUID();
-        if (nodeId == m_state->temp.m_selectedNode->UUID())
+        if (m_state->temp.m_selectedNode && nodeId == m_state->temp.m_selectedNode->UUID())
             localFlags |= ImGuiTreeNodeFlags_Selected;
 
         if (child->HasChild() == false)
@@ -41,7 +41,11 @@ void SceneHierarchyPanel::RenderNode(const lum::Node3D& node, ImGuiTreeNodeFlags
             ImGui::PushID(to_string(nodeId).c_str());
             ImGui::TreeNodeEx(child->Name().c_str(), localFlags);
             if (ImGui::IsItemClicked())
+            {
+                // reset focus so any ongoing change in the inspector does not get incorrectly bound to the new selected
+                ImGui::SetWindowFocus(nullptr);
                 m_state->temp.m_selectedNode = child.get();
+            }
             if (shouldMoveNode.has_value() == false)
                 shouldMoveNode = HandleDragDrop(child);
             ImGui::PopID();
@@ -51,7 +55,10 @@ void SceneHierarchyPanel::RenderNode(const lum::Node3D& node, ImGuiTreeNodeFlags
             ImGui::PushID(to_string(nodeId).c_str());
             bool nodeOpen = ImGui::TreeNodeEx(child->Name().c_str(), localFlags);
             if (ImGui::IsItemClicked())
+            {
+                ImGui::SetWindowFocus(nullptr);
                 m_state->temp.m_selectedNode = child.get();
+            }
             if (shouldMoveNode.has_value() == false)
                 shouldMoveNode = HandleDragDrop(child);
             if (nodeOpen)
