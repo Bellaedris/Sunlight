@@ -9,6 +9,7 @@
 #include "imgui/imgui.h"
 #include "Lumiere/ResourcesManager.h"
 #include "Lumiere/Events/RenderEvents.h"
+#include "UI/InspectorPanel.h"
 #include "UI/ProfilerPanel.h"
 #include "UI/RenderSettingsPanel.h"
 #include "UI/SceneHierarchyPanel.h"
@@ -34,6 +35,7 @@ Editor::Editor
     m_panels.emplace_back(std::make_unique<ui::RenderSettingsPanel>(m_pipeline));
     m_panels.emplace_back(std::make_unique<ui::ProfilerPanel>(profiler));
     m_panels.emplace_back(std::make_unique<ui::SceneHierarchyPanel>(m_scene, m_state));
+    m_panels.emplace_back(std::make_unique<ui::InspectorPanel>(m_state));
 }
 
 void Editor::Render()
