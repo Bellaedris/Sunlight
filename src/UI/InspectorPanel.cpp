@@ -94,19 +94,19 @@ void InspectorPanel::DrawTransformInspector(lum::comp::Transform& transform, ImG
         ImGui::BeginTable("Transform", 2, ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_PadOuterX);
 
         ImGui::TableNextRow();
-        TransformSlider("Position", transform.LocalPosition(), 1.f, [&transform](const glm::vec3& vector)
+        TransformSlider("Position", transform.LocalPosition(), .0f, [&transform](const glm::vec3& vector)
         {
             transform.SetLocalPosition(vector);
         });
 
         ImGui::TableNextRow();
-        TransformSlider("Rotation", transform.LocalRotation(), 1.f, [&transform](const glm::vec3& vector)
+        TransformSlider("Rotation", transform.LocalRotation(), .0f, [&transform](const glm::vec3& vector)
         {
             transform.SetLocalRotation(vector);
         });
 
         ImGui::TableNextRow();
-        TransformSlider("Scale", transform.LocalScale(), .0f, [&transform](const glm::vec3& vector)
+        TransformSlider("Scale", transform.LocalScale(), 1.f, [&transform](const glm::vec3& vector)
         {
             transform.SetLocalScale(vector);
         });
