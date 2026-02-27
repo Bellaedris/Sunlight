@@ -41,7 +41,7 @@ Editor::Editor
 void Editor::Render()
 {
     ImGui::DockSpaceOverViewport();
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(3.0f, 3.0f));
 
     for (const auto& panel : m_panels)
         panel->Render();
