@@ -55,9 +55,6 @@ void Sunlight::Init()
 
     m_scene->Lights()->AddDirLight({0, -1, -.5}, 3.f, {1, 1, 1});
 
-    m_scene->AddNode();
-    m_scene->AddNode();
-
     // renderer setup
     lum::rdr::RenderPipeline pbr("pipelinePBR");
     lum::rdr::RenderPipeline npr("pipelineNPR");
@@ -128,7 +125,7 @@ void Sunlight::Render()
     //     m_profilerGPU->Reset();
     //     m_rendererManager->SetActivePipeline(0);
     // }
-    m_scene->RootNode().Update();
+    m_scene->RootNode()->Update();
     m_profilerGPU->BeginFrame();
     m_rendererManager->Render(frame);
     m_profilerGPU->EndFrame();

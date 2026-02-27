@@ -40,7 +40,6 @@ namespace sun
         void Init() override;
 
         void Render() override;
-        void RenderGuizmos();
 
         void RenderUI() override;
     };
