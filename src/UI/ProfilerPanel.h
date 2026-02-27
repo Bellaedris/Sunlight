@@ -12,6 +12,9 @@ class ProfilerPanel : public IEditorPanel
 {
 private:
     std::shared_ptr<lum::ProfilerGPU> m_profiler;
+
+    std::string m_labelsStr[lum::ProfilerGPU::MAX_FRAMES_STORAGE];
+    const char* m_labels[lum::ProfilerGPU::MAX_FRAMES_STORAGE];
 public:
     ProfilerPanel(std::shared_ptr<lum::ProfilerGPU> profiler);
     void Render() override;
