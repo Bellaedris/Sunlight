@@ -19,7 +19,11 @@ uniform sampler2D EmissiveTexture;
 uniform int hasNormals = 0;
 
 void main() {
-    gAlbedo = texture(AlbedoTexture, texcoord);
+    vec4 color = texture(AlbedoTexture, texcoord);
+    if(color.a < .1f)
+        discard;
+
+    gAlbedo = color;
     if(hasNormals == 0)
     {
         vec3 norm = texture(NormalsTexture, texcoord).rgb;// this is in 0..1
