@@ -69,7 +69,7 @@ void InspectorPanel::Render()
                 {
                     if (script->Path().empty() == false)
                     {
-                        ImGui::Text("Script path: %s", script->Path().c_str());
+                        ImGui::Text("Script : %s", script->Name().c_str());
                         if (ImGui::Button("Reload Script"))
                             script->LoadScript();
                     }
