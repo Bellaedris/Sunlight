@@ -125,7 +125,7 @@ void Sunlight::Render()
     //     m_profilerGPU->Reset();
     //     m_rendererManager->SetActivePipeline(0);
     // }
-    m_scene->RootNode()->Update();
+    m_scene->RootNode()->Update(m_deltaTime);
     m_profilerGPU->BeginFrame();
     m_rendererManager->Render(frame);
     m_profilerGPU->EndFrame();

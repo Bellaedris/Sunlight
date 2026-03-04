@@ -15,13 +15,13 @@ private:
     std::shared_ptr<EditorState> m_state;
     int m_selectedComponentType {0};
     ImGui::FileBrowser m_fileBrowser;
+    ImGui::FileBrowser m_scriptBrowser;
 
     void DrawTransformInspector(lum::comp::Transform& transform, ImGuiTreeNodeFlags flags);
     void TransformSlider(const char* name, glm::vec3 vector, float defaultValue, std::function<void(const glm::vec3&)>);
     template <typename T>
     void ComponentCreationButton(lum::Node3D* node, const char* name, const char* icon);
 
-    constexpr static std::array<const char*, 1> COMPONENT_TYPES  = {"Mesh Renderer"};
 public:
     InspectorPanel(const std::shared_ptr<EditorState>& state);
 

@@ -5,6 +5,7 @@
 #include "InspectorPanel.h"
 
 #include "Lumiere/Components/MeshRenderer.h"
+#include "Lumiere/Components/Script.h"
 #include "imgui/IconsFontAwesome4.h"
 #include "imgui/imgui_internal.h"
 
@@ -15,6 +16,9 @@ InspectorPanel::InspectorPanel(const std::shared_ptr<EditorState> &state)
 {
     m_fileBrowser.SetTitle("Mesh selection");
     m_fileBrowser.SetTypeFilters({".gltf", ".glb", ".obj", ".fbx"});
+
+    m_scriptBrowser.SetTitle("Script selection");
+    m_scriptBrowser.SetTypeFilters({".lua"});
 }
 
 void InspectorPanel::Render()
@@ -33,9 +37,9 @@ void InspectorPanel::Render()
             DrawTransformInspector(m_state->temp.m_selectedNode->GetTransform(), flags);
 
             // Mesh renderer
-            if (auto opt = node->GetComponent<lum::comp::MeshRenderer>())
+            if (auto mr = node->GetComponent<lum::comp::MeshRenderer>())
             {
-                lum::comp::MeshRenderer* renderer = opt.value();
+                lum::comp::MeshRenderer* renderer = mr.value();
                 if (ImGui::TreeNodeEx(ICON_FA_CUBE " Mesh Renderer", flags))
                 {
                     if (renderer->Mesh() != nullptr)
@@ -53,6 +57,36 @@ void InspectorPanel::Render()
                 {
                     renderer->SetMesh(m_fileBrowser.GetSelected().string());
                     m_fileBrowser.ClearSelected();
+                }
+            }
+
+            // Script
+            if (auto sc = node->GetComponent<lum::comp::Script>())
+            {
+                lum::comp::Script* script = sc.value();
+
+                if (ImGui::TreeNodeEx(ICON_FA_FILE_CODE_O " Lua Script", flags))
+                {
+                    if (script->Path().empty() == false)
+                    {
+                        ImGui::Text("Script path: %s", script->Path().c_str());
+                        if (ImGui::Button("Reload Script"))
+                            script->LoadScript();
+                    }
+                    if (ImGui::Button("Select a script"))
+                    {
+                        // load a mesh from file/resourcesManager
+                        m_scriptBrowser.Open();
+                    }
+                    ImGui::TreePop();
+                }
+
+                m_scriptBrowser.Display();
+                if (m_scriptBrowser.HasSelected())
+                {
+                    script->SetScriptPath(m_scriptBrowser.GetSelected().string());
+                    script->LoadScript();
+                    m_scriptBrowser.ClearSelected();
                 }
             }
 
@@ -80,6 +114,7 @@ void InspectorPanel::Render()
             if (ImGui::BeginPopup("ComponentSelection"))
             {
                 ComponentCreationButton<lum::comp::MeshRenderer>(node, "Mesh Renderer", ICON_FA_CUBE);
+                ComponentCreationButton<lum::comp::Script>(node, "Lua Script", ICON_FA_FILE_CODE_O);
                 ImGui::EndPopup();
             }
         }
