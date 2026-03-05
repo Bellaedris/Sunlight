@@ -42,12 +42,14 @@ void InspectorPanel::Render()
                 lum::comp::MeshRenderer* renderer = mr.value();
                 if (ImGui::TreeNodeEx(ICON_FA_CUBE " Mesh Renderer", flags))
                 {
-                    if (renderer->Mesh() != nullptr)
-                        ImGui::Text("Current Mesh: %s", renderer->Mesh()->Name().c_str());
                     if (ImGui::Button("Pick a mesh"))
                     {
                         // load a mesh from file/resourcesManager
                         m_fileBrowser.Open();
+                    }
+                    if (renderer->Mesh() != nullptr)
+                    {
+                        DrawMeshDetails(renderer);
                     }
                     ImGui::TreePop();
                 }
@@ -146,6 +148,24 @@ void InspectorPanel::DrawTransformInspector(lum::comp::Transform& transform, ImG
             transform.SetLocalScale(vector);
         });
         ImGui::EndTable();
+        ImGui::TreePop();
+    }
+}
+
+void InspectorPanel::DrawMeshDetails(lum::comp::MeshRenderer* renderer)
+{
+    ImGui::Text("Current Mesh: %s", renderer->Mesh()->Name().c_str());
+    if (ImGui::TreeNodeEx("Submeshes", ImGuiTreeNodeFlags_DrawLinesFull))
+    {
+        std::vector<lum::gfx::SubMesh>& submeshes = renderer->Mesh()->Primitives();
+        for (auto& submesh : submeshes)
+        {
+            if (ImGui::TreeNodeEx(submesh.Name().c_str(), ImGuiTreeNodeFlags_DrawLinesFull))
+            {
+                submesh.Material()->DrawEditor();
+                ImGui::TreePop();
+            }
+        }
         ImGui::TreePop();
     }
 }

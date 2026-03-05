@@ -5,6 +5,7 @@
 #pragma once
 #include "IEditorPanel.h"
 #include "../EditorState.h"
+#include "Lumiere/Components/MeshRenderer.h"
 #include "imgui/imfilebrowser.h"
 
 namespace sun::ui
@@ -18,6 +19,7 @@ private:
     ImGui::FileBrowser m_scriptBrowser;
 
     void DrawTransformInspector(lum::comp::Transform& transform, ImGuiTreeNodeFlags flags);
+    void DrawMeshDetails(lum::comp::MeshRenderer* renderer);
     void TransformSlider(const char* name, glm::vec3 vector, float defaultValue, std::function<void(const glm::vec3&)>);
     template <typename T>
     void ComponentCreationButton(lum::Node3D* node, const char* name, const char* icon);
