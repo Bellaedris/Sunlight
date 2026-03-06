@@ -50,10 +50,6 @@ void Sunlight::Init()
     m_scene->SetMainCamera(m_camera.get());
 
     m_scene->AddMesh("resources/models/Sponza/glTF/Sponza.gltf");
-    //m_scene->AddMesh("resources/models/bistrogltf/bistro.gltf");
-    //m_actors.emplace_back("resources/models/backpack.obj");
-
-    m_scene->Lights()->AddDirLight({0, -1, -.5}, 3.f, {1, 1, 1});
 
     // renderer setup
     lum::rdr::RenderPipeline pbr("pipelinePBR");
