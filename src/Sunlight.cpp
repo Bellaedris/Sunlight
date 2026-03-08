@@ -49,8 +49,6 @@ void Sunlight::Init()
     m_camera = std::make_unique<lum::rdr::Camera>(glm::vec3(0, 0, 0), m_window->AspectRatio(), 70.f, .01f, 100.f);
     m_scene->SetMainCamera(m_camera.get());
 
-    m_scene->AddMesh("resources/models/Sponza/glTF/Sponza.gltf");
-
     // renderer setup
     lum::rdr::RenderPipeline pbr("pipelinePBR");
     lum::rdr::RenderPipeline npr("pipelineNPR");

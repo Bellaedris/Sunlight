@@ -80,16 +80,16 @@ void InspectorPanel::Render()
                     if (ImGui::Button("Select a script"))
                     {
                         // load a mesh from file/resourcesManager
-                        m_fileBrowser.Open();
+                        m_scriptBrowser.Open();
                     }
                     ImGui::TreePop();
                 }
 
-                m_fileBrowser.Display();
-                if (m_fileBrowser.HasSelected())
+                m_scriptBrowser.Display();
+                if (m_scriptBrowser.HasSelected())
                 {
-                    script->SetScriptPath(m_fileBrowser.GetSelected().string());
-                    m_fileBrowser.ClearSelected();
+                    script->SetScriptPath(m_scriptBrowser.GetSelected().string());
+                    m_scriptBrowser.ClearSelected();
                 }
             }
 
