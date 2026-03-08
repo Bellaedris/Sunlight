@@ -5,7 +5,7 @@
 #pragma once
 #include "Lumiere/Node3D.h"
 #include "glm/vec2.hpp"
-#include "stduuid/uuid.h"
+#include "Lumiere/Renderer/Camera.h"
 
 namespace sun
 {
@@ -19,6 +19,9 @@ struct EditorState
     {
         lum::Node3D* m_selectedNode;
         bool shouldNotifyViewportChange {false};
+        // TODO the camera should be stored in the persistent storage, but since we use a weird camera model that does
+        // not depend on gameplay/editor for now, i'll just leave it here
+        lum::rdr::Camera* viewportCamera;
     } temp;
 
     struct
