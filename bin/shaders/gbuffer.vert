@@ -22,9 +22,9 @@ uniform mat4 modelMatrix;
 uniform mat4 normalMatrix;
 
 void main() {
-    normal = iNorm;
+    normal = normalize(normalMatrix * vec4(iNorm, .0f)).xyz;
     texcoord = iTexcoord;
-    position = (modelMatrix * vec4(iPos, 1.f)).xyz; // multiply by model matrix when we have one
+    position = (modelMatrix * vec4(iPos, 1.f)).xyz;
 
     vec3 T = normalize(vec3(normalMatrix * vec4(iTangent, .0f)));
     vec3 B = normalize(vec3(normalMatrix * vec4(iBitangent, .0f)));
