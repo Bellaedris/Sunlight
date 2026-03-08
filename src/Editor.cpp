@@ -67,4 +67,9 @@ void Editor::OnEvent(const std::shared_ptr<lum::evt::IEvent> &event)
     for (const auto& panel : m_panels)
         panel->OnEvent(event);
 }
+
+void Editor::SetViewportCamera(lum::rdr::Camera *camera)
+{
+    m_state->temp.viewportCamera = camera;
+}
 } // sun

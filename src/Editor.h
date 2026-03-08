@@ -27,5 +27,7 @@ public:
     Editor(const std::shared_ptr<lum::evt::EventHandler>& events, const std::shared_ptr<lum::rdr::SceneDesc>& scene, const std::shared_ptr<lum::RendererManager>& renderer, const std::shared_ptr<lum::ProfilerGPU>& profiler);
     void Render();
     void OnEvent(const std::shared_ptr<lum::evt::IEvent>& event);
+
+    void SetViewportCamera(lum::rdr::Camera* camera);
 };
 } // sun

@@ -9,6 +9,7 @@
 #include "imgui/imgui_impl_opengl3.h"
 #include "imgui/implot.h"
 #include "imgui/IconsFontAwesome4.h"
+#include "imgui/ImGuizmo.h"
 
 #include <filesystem>
 #include <iostream>
@@ -70,6 +71,7 @@ void ImGuiContext::BeginFrame()
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
+    ImGuizmo::BeginFrame();
 }
 
 void ImGuiContext::EndFrame()

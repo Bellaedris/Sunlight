@@ -8,6 +8,7 @@
 #include "Lumiere/Events/RenderEvents.h"
 #include "Lumiere/Renderer/RenderPipeline.h"
 #include "Lumiere/Renderer/Passes/ShadeNPR.h"
+#include "imgui/ImGuizmo.h"
 
 namespace sun::ui {
 ViewportPanel::ViewportPanel(const std::shared_ptr<EditorState>& editorState)
@@ -49,6 +50,30 @@ void ViewportPanel::Render()
         glm::ivec2 size = m_lastRenderedFrame->Size();
         // we change the UVs because of OpenGL's flipped Y axis
         ImGui::Image(m_lastRenderedFrame->Handle(), ImVec2(size.x, size.y), ImVec2(0, 1), ImVec2(1, 0));
+
+        // draw guizmos
+        if (m_state->temp.m_selectedNode != nullptr)
+        {
+            static ImGuizmo::OPERATION mCurrentGizmoOperation(ImGuizmo::ROTATE);
+            static ImGuizmo::MODE mCurrentGizmoMode(ImGuizmo::WORLD);
+            if (ImGui::IsKeyPressed(ImGuiKey_T))
+                mCurrentGizmoOperation = ImGuizmo::TRANSLATE;
+            if (ImGui::IsKeyPressed(ImGuiKey_E))
+                mCurrentGizmoOperation = ImGuizmo::ROTATE;
+            if (ImGui::IsKeyPressed(ImGuiKey_R))
+                mCurrentGizmoOperation = ImGuizmo::SCALE;
+
+            ImVec2 pos = ImGui::GetWindowPos();
+            ImGuizmo::SetRect(pos.x, pos.y, m_lastViewportSize.x, m_lastViewportSize.y);
+            ImGuizmo::Manipulate(
+                    glm::value_ptr(m_state->temp.viewportCamera->View()),
+                    glm::value_ptr(m_state->temp.viewportCamera->Projection()),
+                    mCurrentGizmoOperation,
+                    mCurrentGizmoMode,
+                    glm::value_ptr(m_state->temp.m_selectedNode->GetTransform().Model()),
+                    nullptr,
+                    nullptr);
+        }
     }
     ImGui::End();
 }

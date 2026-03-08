@@ -96,6 +96,8 @@ void Sunlight::Init()
 
     lum::gpu::GLUtils::ClearColor({.2f, .2f, .2f, 1.f});
     lum::gpu::GLUtils::SetDepthTesting(true);
+
+    m_editor->SetViewportCamera(m_camera.get());
 }
 
 void Sunlight::Render()
