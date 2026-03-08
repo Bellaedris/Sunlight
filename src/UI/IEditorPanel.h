@@ -7,6 +7,7 @@
 #include <Lumiere/Events/IEvent.h>
 #include <memory>
 #include <imgui/imgui.h>
+#include <imgui/imfilebrowser.h>
 #include <imgui/implot.h>
 
 namespace sun::ui

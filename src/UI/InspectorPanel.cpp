@@ -8,6 +8,7 @@
 #include "Lumiere/Components/MeshRenderer.h"
 #include "Lumiere/Components/Script.h"
 #include "imgui/IconsFontAwesome4.h"
+#include "imgui/ImGuizmo.h"
 #include "imgui/imgui_internal.h"
 
 namespace sun::ui
@@ -15,7 +16,11 @@ namespace sun::ui
 InspectorPanel::InspectorPanel(const std::shared_ptr<EditorState> &state)
     : m_state(state)
 {
+    m_fileBrowser.SetTitle("Mesh selection");
+    m_fileBrowser.SetTypeFilters({".gltf", ".glb", ".obj", ".fbx"});
 
+    m_scriptBrowser.SetTitle("Script selection");
+    m_scriptBrowser.SetTypeFilters({".lua"});
 }
 
 void InspectorPanel::Render()
@@ -28,12 +33,85 @@ void InspectorPanel::Render()
             
             ImGui::InputText("Name", m_state->temp.m_selectedNode->Name().data(), lum::Node3D::NODE_NAME_MAX_LENGTH);
 
+            // component sub region flags
+            static ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_SpanFullWidth | ImGuiTreeNodeFlags_DefaultOpen;
             // Transform
-            node->GetTransform().DrawInspector();
+            DrawTransformInspector(node->GetTransform(), flags);
 
             // Components
-            for (auto&& component : node->Components())
-                component->DrawInspector();
+            // Mesh Renderer
+            if (std::optional<lum::comp::MeshRenderer*> mr = node->GetComponent<lum::comp::MeshRenderer>())
+            {
+                lum::comp::MeshRenderer* renderer = mr.value();
+                if (ImGui::TreeNodeEx(ICON_FA_CUBE " Mesh Renderer", flags))
+                {
+                    if (ImGui::Button("Pick a mesh"))
+                    {
+                        // load a mesh from file/resourcesManager
+                        m_fileBrowser.Open();
+                    }
+                    if (renderer->Mesh() != nullptr)
+                    {
+                        DrawMeshDetails(renderer);
+                    }
+                    ImGui::TreePop();
+                }
+
+                m_fileBrowser.Display();
+                if (m_fileBrowser.HasSelected())
+                {
+                    renderer->SetMesh(m_fileBrowser.GetSelected().string());
+                    m_fileBrowser.ClearSelected();
+                }
+            }
+
+            // Script
+            if (std::optional<lum::comp::Script*> s = node->GetComponent<lum::comp::Script>())
+            {
+                lum::comp::Script* script = s.value();
+                if (ImGui::TreeNodeEx(ICON_FA_FILE_CODE_O " Lua Script", flags))
+                {
+                    if (script->Path().empty() == false)
+                    {
+                        ImGui::Text("Script : %s", script->Name().c_str());
+                        if (ImGui::Button("Reload Script"))
+                            script->LoadScript();
+                    }
+                    if (ImGui::Button("Select a script"))
+                    {
+                        // load a mesh from file/resourcesManager
+                        m_fileBrowser.Open();
+                    }
+                    ImGui::TreePop();
+                }
+
+                m_fileBrowser.Display();
+                if (m_fileBrowser.HasSelected())
+                {
+                    script->SetScriptPath(m_fileBrowser.GetSelected().string());
+                    m_fileBrowser.ClearSelected();
+                }
+            }
+
+            // Light
+            if (std::optional<lum::comp::Light*> l = node->GetComponent<lum::comp::Light>())
+            {
+                lum::comp::Light* light = l.value();
+                if (ImGui::TreeNodeEx(ICON_FA_LIGHTBULB_O " Light", flags))
+                {
+                    ImGui::Combo("Light type", &light->Type(), lum::comp::Light::LIGHT_TYPES, lum::comp::Light::LIGHT_TYPE_COUNT);
+
+                    ImGui::ColorPicker3("Tint", glm::value_ptr(light->Color()));
+                    ImGui::DragFloat("Intensity", &light->Intensity(), 0.1f);
+
+                    // type dependant editor: 0 is directional, 1 point, 2 spot
+                    if (light->Type() == 1)
+                    {
+                        ImGui::DragFloat("Range", &light->PointRange(), 1.f);
+                    }
+                    ImGui::TreePop();
+                }
+            }
 
             // new component creation
             float buttonWidth = ImGui::GetContentRegionAvail().x * (2.f / 3.f);
@@ -66,5 +144,119 @@ void InspectorPanel::Render()
         }
     }
     ImGui::End();
+}
+
+void InspectorPanel::DrawTransformInspector(lum::comp::Transform &transform, ImGuiTreeNodeFlags flags)
+{
+    if (ImGui::TreeNodeEx(ICON_FA_ARROWS " Transform", flags))
+    {
+        ImGui::BeginTable("Transform", 2, ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_PadOuterX);
+
+        ImGui::TableNextRow();
+        TransformSlider("Position", transform.LocalPosition(), .0f, [&](const glm::vec3& vector)
+        {
+            transform.SetLocalPosition(vector);
+        });
+
+        ImGui::TableNextRow();
+        TransformSlider("Rotation", transform.LocalRotation(), .0f, [&](const glm::vec3& vector)
+        {
+            transform.SetLocalRotation(vector);
+        });
+
+        ImGui::TableNextRow();
+        TransformSlider("Scale", transform.LocalScale(), 1.f, [&](const glm::vec3& vector)
+        {
+            transform.SetLocalScale(vector);
+        });
+        ImGui::EndTable();
+
+        ImGui::TreePop();
+    }
+}
+
+void InspectorPanel::DrawMeshDetails(lum::comp::MeshRenderer *renderer)
+{
+    ImGui::Text("Current Mesh: %s", renderer->Mesh()->Name().c_str());
+    if (ImGui::TreeNodeEx("Submeshes", ImGuiTreeNodeFlags_DrawLinesFull))
+    {
+        std::vector<lum::gfx::SubMesh>& submeshes = renderer->Mesh()->Primitives();
+        for (auto& submesh : submeshes)
+        {
+            if (ImGui::TreeNodeEx(submesh.Name().c_str(), ImGuiTreeNodeFlags_DrawLinesFull))
+            {
+                submesh.Material()->DrawEditor();
+                ImGui::TreePop();
+            }
+        }
+        ImGui::TreePop();
+    }
+}
+
+void InspectorPanel::TransformSlider(
+        const char *name,
+        glm::vec3 vector,
+        float defaultValue,
+        std::function<void(const glm::vec3 &)> updateVector)
+{
+    ImGui::AlignTextToFramePadding();
+
+    ImGui::TableNextColumn();
+    ImGui::Text("%s", name);
+
+    ImGui::TableNextColumn();
+    ImGui::PushMultiItemsWidths(3, ImGui::GetContentRegionAvail().x - 30);
+
+    ImGui::PushID(name);
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 });
+
+    //ImGui::PushStyleColor(ImGuiCol_ButtonActive, EditorCol_Secondary2);
+    {
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(1, 0, 0, 1));
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(1, 0, 0, 1));
+        {
+            if (ImGui::Button("X")) {
+                updateVector(glm::vec3(defaultValue, vector.y, vector.z));
+            }
+            ImGui::SameLine();
+            if (ImGui::DragFloat("##X", &vector.x, 0.5f))
+            {
+                updateVector(vector);
+            }
+            ImGui::SameLine();
+        }
+        ImGui::PopStyleColor(2); // Button, ButtonHovered
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 1, 0, 1));
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0, 1, 0, 1));
+        {
+            if (ImGui::Button("Y")) {
+                updateVector(glm::vec3(vector.x, defaultValue, vector.z));
+            }
+            ImGui::SameLine();
+            if (ImGui::DragFloat("##Y", &vector.y, 0.5f))
+            {
+                updateVector(vector);
+            }
+            ImGui::SameLine();
+        }
+        ImGui::PopStyleColor(2); // Button, ButtonHovered
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 1, 1));
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0, 0, 1, 1));
+        {
+            if (ImGui::Button("Z"))
+            {
+                updateVector(glm::vec3(vector.x, vector.y, defaultValue));
+            }
+            ImGui::SameLine();
+            if (ImGui::DragFloat("##Z", &vector.z, 0.5f))
+            {
+                updateVector(vector);
+            }
+        }
+        ImGui::PopStyleColor(2); // Button, ButtonHovered
+    }
+
+    ImGui::PopStyleVar();
+    ImGui::PopID();
 }
 } // sun::ui
