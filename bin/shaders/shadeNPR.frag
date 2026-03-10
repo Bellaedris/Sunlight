@@ -46,7 +46,7 @@ float Posterize(float cosTheta)
     step(.75f, cosTheta) * .75f;
 }
 
-float CalculateDirectionalLight(DirectionalLight l, vec3 normal)
+vec3 CalculateSketchingFactor(DirectionalLight l, vec3 normal)
 {
     float cosTheta = max(dot(normalize(-l.direction), normal), .0f);
 
@@ -56,7 +56,7 @@ float CalculateDirectionalLight(DirectionalLight l, vec3 normal)
     step(cosTheta, .5f) * pencilMask.r),
     step(cosTheta, .75f) * pencilMask.g);
 
-    return 1.f - pencil;
+    return (1.f - pencil) * l.color;
 }
 
 void main() {
@@ -71,7 +71,7 @@ void main() {
     vec3 color = vec3(0, 0, 0);
     for(int i = 0; i < dirLightCount; i++)
     {
-        color += gAlbedo * CalculateDirectionalLight(dirLightData[i], gNormal);
+        color += gAlbedo * CalculateSketchingFactor(dirLightData[i], gNormal);
     }
 
     FragColor = vec4(color, 1.f);
