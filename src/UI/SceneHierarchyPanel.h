@@ -9,6 +9,7 @@
 #include "IEditorPanel.h"
 #include "../EditorState.h"
 #include "Lumiere/Renderer/SceneDesc.h"
+#include "imgui/imfilebrowser.h"
 
 namespace sun::ui
 {
@@ -20,6 +21,7 @@ private:
         lum::Node3D* source {nullptr};
         lum::Node3D* destination {nullptr};
     };
+    ImGui::FileBrowser m_sceneBrowser;
 
     // must be replaced by some kind of scene manager in the future. We need access to the currently opened scene
     std::shared_ptr<lum::rdr::SceneDesc> m_scene;

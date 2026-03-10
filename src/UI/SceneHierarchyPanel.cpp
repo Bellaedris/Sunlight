@@ -5,6 +5,7 @@
 #include "SceneHierarchyPanel.h"
 
 #include "imgui/IconsFontAwesome4.h"
+#include "imgui/imgui_stdlib.h"
 
 namespace sun::ui
 {
@@ -12,21 +13,45 @@ SceneHierarchyPanel::SceneHierarchyPanel(const std::shared_ptr<lum::rdr::SceneDe
     : m_scene(scene)
     , m_state(editorState)
 {
+    m_sceneBrowser.SetTitle("Select a scene");
+    m_sceneBrowser.SetTypeFilters({".lumsc"});
 }
 
 void SceneHierarchyPanel::Render()
 {
     ImGui::Begin("Hierarchy");
     {
+        lum::Node3D* node  = m_scene->RootNode();
+
         ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(3.f, 3.f));
+
+        //scene name
+        ImGui::InputText("Scene name", &node->Name());
+        ImGui::SameLine();
+        if (ImGui::Button(ICON_FA_FOLDER_OPEN_O))
+        {
+            m_sceneBrowser.Open();
+        }
+
+        m_sceneBrowser.Display();
+        if (m_sceneBrowser.HasSelected())
+        {
+            m_scene->Deserialize(m_sceneBrowser.GetSelected().string());
+            m_sceneBrowser.ClearSelected();
+        }
 
         float size = ImGui::GetContentRegionAvail().x;
         if (ImGui::Button(ICON_FA_PLUS " New node", {size, .0f}))
         {
-            m_state->temp.m_selectedNode = m_scene->AddNode();
+            // enventually, to add to the selected child
+            // if (m_state->temp.m_selectedNode != nullptr)
+            // {
+            //     m_state->temp.m_selectedNode = m_state->temp.m_selectedNode->AddChild();
+            // }
+            // else
+                m_state->temp.m_selectedNode = m_scene->AddNode();
         }
 
-        lum::Node3D* node  = m_scene->RootNode();
         shouldMoveNode = {};
         shouldRemoveNode = {};
 
