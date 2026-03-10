@@ -10,6 +10,7 @@
 #include "imgui/IconsFontAwesome4.h"
 #include "imgui/ImGuizmo.h"
 #include "imgui/imgui_internal.h"
+#include "imgui/imgui_stdlib.h"
 
 namespace sun::ui
 {
@@ -30,8 +31,8 @@ void InspectorPanel::Render()
         if (m_state->temp.m_selectedNode != nullptr)
         {
             lum::Node3D* node = m_state->temp.m_selectedNode;
-            
-            ImGui::InputText("Name", m_state->temp.m_selectedNode->Name().data(), lum::Node3D::NODE_NAME_MAX_LENGTH);
+
+            ImGui::InputText("Name", &node->Name());
 
             // component sub region flags
             static ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_SpanFullWidth | ImGuiTreeNodeFlags_DefaultOpen;
