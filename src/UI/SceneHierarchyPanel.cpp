@@ -4,6 +4,7 @@
 
 #include "SceneHierarchyPanel.h"
 
+#include "Lumiere/EngineCfg.h"
 #include "imgui/IconsFontAwesome4.h"
 #include "imgui/imgui_stdlib.h"
 
@@ -28,6 +29,13 @@ void SceneHierarchyPanel::Render()
         //scene name
         ImGui::InputText("Scene name", &node->Name());
         ImGui::SameLine();
+        if (ImGui::Button(ICON_FA_FILE_O))
+        {
+            m_scene->ResetScene();
+            node = m_scene->RootNode();
+            m_state->temp.m_selectedNode = nullptr;
+        }
+        ImGui::SameLine();
         if (ImGui::Button(ICON_FA_FOLDER_OPEN_O))
         {
             m_sceneBrowser.Open();
@@ -36,7 +44,13 @@ void SceneHierarchyPanel::Render()
         m_sceneBrowser.Display();
         if (m_sceneBrowser.HasSelected())
         {
-            m_scene->Deserialize(m_sceneBrowser.GetSelected().string());
+            //serialize the current scene before loading the new one
+            m_scene->LoadScene(m_sceneBrowser.GetSelected().string());
+            m_state->temp.m_selectedNode = nullptr;
+            // the hierarchy just changed, update the root node
+            node = m_scene->RootNode();
+            std::string relativePath = m_sceneBrowser.GetSelected().lexically_relative(lum::cfg::EXECUTABLE_DIR).string();
+            m_state->persistent.activeScenePath = relativePath;
             m_sceneBrowser.ClearSelected();
         }
 

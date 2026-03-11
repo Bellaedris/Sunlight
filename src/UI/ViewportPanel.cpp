@@ -30,7 +30,7 @@ void ViewportPanel::Render()
             if (m_lastViewportSize.x != 0 && m_initialized == false)
             {
                 m_state->temp.shouldNotifyViewportChange = true;
-                m_state->persistent.viewportSize = {availableSize.x, availableSize.y};
+                m_state->temp.viewportSize = {availableSize.x, availableSize.y};
                 m_isResizing = false;
                 m_initialized = true;
             }
@@ -43,7 +43,7 @@ void ViewportPanel::Render()
         if (m_isResizing == true && ImGui::IsMouseReleased(ImGuiMouseButton_Left))
         {
             m_state->temp.shouldNotifyViewportChange = true;
-            m_state->persistent.viewportSize = {availableSize.x, availableSize.y};
+            m_state->temp.viewportSize = {availableSize.x, availableSize.y};
             m_isResizing = false;
         }
         m_lastViewportSize = availableSize;

@@ -25,6 +25,8 @@ private:
     std::shared_ptr<lum::RendererManager> m_pipeline;
 public:
     Editor(const std::shared_ptr<lum::evt::EventHandler>& events, const std::shared_ptr<lum::rdr::SceneDesc>& scene, const std::shared_ptr<lum::RendererManager>& renderer, const std::shared_ptr<lum::ProfilerGPU>& profiler);
+    ~Editor();
+
     void Render();
     void OnEvent(const std::shared_ptr<lum::evt::IEvent>& event);
 

@@ -42,7 +42,6 @@ Sunlight::~Sunlight()
 {
     // save the render pipeline state upon editor closure
     m_rendererManager->Serialize();
-    m_scene->Serialize();
 }
 
 void Sunlight::Init()
