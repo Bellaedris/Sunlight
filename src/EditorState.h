@@ -15,6 +15,11 @@ namespace sun
  */
 struct EditorState
 {
+    #pragma region Constants
+    constexpr static int EDITOR_STATE_SERIALIZER_VERSION = 1;
+    constexpr static const char* EDITOR_CONFIG_PATH = "config/EditorCfg.yaml";
+    #pragma endregion // Constants
+
     struct
     {
         lum::Node3D* m_selectedNode;
@@ -22,11 +27,16 @@ struct EditorState
         // TODO the camera should be stored in the persistent storage, but since we use a weird camera model that does
         // not depend on gameplay/editor for now, i'll just leave it here
         lum::rdr::Camera* viewportCamera;
+        glm::ivec2 viewportSize;
     } temp;
 
     struct
     {
-        glm::ivec2 viewportSize;
+        /** \brief relative path of the active scene */
+        std::string activeScenePath;
     } persistent;
+
+    void Serialize();
+    void Deserialize();
 };
 } // sun
