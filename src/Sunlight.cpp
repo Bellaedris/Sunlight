@@ -27,7 +27,6 @@ namespace sun
 {
 Sunlight::Sunlight(int width, int height)
     : App(width, height, 4, 6)
-    , m_internalEvents(std::make_shared<lum::evt::EventHandler>())
     , m_imguiContext(std::make_unique<ImGuiContext>(m_window))
     , m_scene(std::make_shared<lum::rdr::SceneDesc>())
     , m_rendererManager(std::make_shared<lum::RendererManager>(1, 1, m_internalEvents))

@@ -18,8 +18,9 @@ private:
 
     std::shared_ptr<EditorState> m_state;
 
-    bool m_isResizing {false};
-    bool m_initialized {false};
+    bool m_windowResized {false};
+    bool m_isResizing    {false};
+    bool m_initialized   {false};
 public:
     ViewportPanel(const std::shared_ptr<EditorState>& editorState);
     void Render() override;

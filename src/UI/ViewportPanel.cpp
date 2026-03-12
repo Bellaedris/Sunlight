@@ -46,6 +46,13 @@ void ViewportPanel::Render()
             m_state->temp.viewportSize = {availableSize.x, availableSize.y};
             m_isResizing = false;
         }
+
+        if (m_windowResized)
+        {
+            m_state->temp.shouldNotifyViewportChange = true;
+            m_state->temp.viewportSize = {availableSize.x, availableSize.y};
+            m_windowResized = false;
+        }
         m_lastViewportSize = availableSize;
         glm::ivec2 size = m_lastRenderedFrame->Size();
         // we change the UVs because of OpenGL's flipped Y axis
@@ -84,6 +91,11 @@ void ViewportPanel::OnEvent(const std::shared_ptr<lum::evt::IEvent> &e)
     {
         auto event = dynamic_pointer_cast<lum::evt::FrameRenderedEvent>(e);
         m_lastRenderedFrame = event->m_frameData;
+    }
+
+    if (e->Type() == lum::evt::WindowResized)
+    {
+        m_windowResized = true;
     }
 }
 } // sun::ui

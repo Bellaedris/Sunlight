@@ -23,7 +23,6 @@ namespace sun
 
     private:
         #pragma region Members
-        std::shared_ptr<lum::evt::EventHandler> m_internalEvents;
         std::unique_ptr<ImGuiContext> m_imguiContext;
         std::shared_ptr<lum::rdr::SceneDesc> m_scene;
 

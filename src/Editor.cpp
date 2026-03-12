@@ -30,6 +30,7 @@ Editor::Editor
     , m_pipeline(renderer)
 {
     LUM_SUB_TO_EVENT(m_events, lum::evt::EventType::FrameRendered, Editor::OnEvent);
+    LUM_SUB_TO_EVENT(m_events, lum::evt::WindowResized, Editor::OnEvent);
 
     m_panels.emplace_back(std::make_unique<ui::ViewportPanel>(m_state));
     m_panels.emplace_back(std::make_unique<ui::RenderSettingsPanel>(m_pipeline));
