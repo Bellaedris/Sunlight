@@ -53,10 +53,12 @@ void Editor::Render()
 {
     ImGui::DockSpaceOverViewport();
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(3.0f, 3.0f));
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.f);
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 2.f);
 
     for (const auto& panel : m_panels)
         panel->Render();
-    ImGui::PopStyleVar(1);
+    ImGui::PopStyleVar(3);
 
     ImGui::Begin("tests");
     {
