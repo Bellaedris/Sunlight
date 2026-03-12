@@ -35,16 +35,27 @@ void InspectorPanel::Render()
             ImGui::InputText("Name", &node->Name());
 
             // component sub region flags
-            static ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_SpanFullWidth | ImGuiTreeNodeFlags_DefaultOpen;
+            static ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_SpanFullWidth |
+                                              ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowOverlap;
             // Transform
             DrawTransformInspector(node->GetTransform(), flags);
 
+            // size of a single font element, to add trash icon
+            float elementHeight = ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y * 2.0f;
             // Components
             // Mesh Renderer
             if (std::optional<lum::comp::MeshRenderer*> mr = node->GetComponent<lum::comp::MeshRenderer>())
             {
                 lum::comp::MeshRenderer* renderer = mr.value();
-                if (ImGui::TreeNodeEx(ICON_FA_CUBE " Mesh Renderer", flags))
+
+                ImGui::PushID("MeshRenderer");
+                bool open = ImGui::TreeNodeEx(ICON_FA_CUBE " Mesh Renderer", flags);
+                ImGui::SameLine(ImGui::GetContentRegionAvail().x - elementHeight);
+                if (ImGui::Button(ICON_FA_TRASH))
+                {
+                    node->RemoveComponent(renderer);
+                }
+                if (open)
                 {
                     if (ImGui::Button("Pick a mesh"))
                     {
@@ -64,13 +75,22 @@ void InspectorPanel::Render()
                     renderer->SetMesh(m_fileBrowser.GetSelected().string());
                     m_fileBrowser.ClearSelected();
                 }
+                ImGui::PopID();
             }
 
             // Script
             if (std::optional<lum::comp::Script*> s = node->GetComponent<lum::comp::Script>())
             {
                 lum::comp::Script* script = s.value();
-                if (ImGui::TreeNodeEx(ICON_FA_FILE_CODE_O " Lua Script", flags))
+
+                ImGui::PushID("Script");
+                bool open = ImGui::TreeNodeEx(ICON_FA_FILE_CODE_O " Lua Script", flags);
+                ImGui::SameLine(ImGui::GetContentRegionAvail().x - elementHeight);
+                if (ImGui::Button(ICON_FA_TRASH))
+                {
+                    node->RemoveComponent(script);
+                }
+                if (open)
                 {
                     if (script->Path().empty() == false)
                     {
@@ -92,13 +112,22 @@ void InspectorPanel::Render()
                     script->SetScriptPath(m_scriptBrowser.GetSelected().string());
                     m_scriptBrowser.ClearSelected();
                 }
+                ImGui::PopID();
             }
 
             // Light
             if (std::optional<lum::comp::Light*> l = node->GetComponent<lum::comp::Light>())
             {
                 lum::comp::Light* light = l.value();
-                if (ImGui::TreeNodeEx(ICON_FA_LIGHTBULB_O " Light", flags))
+
+                ImGui::PushID("Light");
+                bool open = ImGui::TreeNodeEx(ICON_FA_LIGHTBULB_O " Light", flags);
+                ImGui::SameLine(ImGui::GetContentRegionAvail().x - elementHeight);
+                if (ImGui::Button(ICON_FA_TRASH))
+                {
+                    node->RemoveComponent(light);
+                }
+                if (open)
                 {
                     ImGui::Combo("Light type", &light->Type(), lum::comp::Light::LIGHT_TYPES, lum::comp::Light::LIGHT_TYPE_COUNT);
 
@@ -112,6 +141,7 @@ void InspectorPanel::Render()
                     }
                     ImGui::TreePop();
                 }
+                ImGui::PopID();
             }
 
             // new component creation
