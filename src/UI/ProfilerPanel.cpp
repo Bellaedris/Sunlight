@@ -4,6 +4,8 @@
 
 #include "ProfilerPanel.h"
 
+#include <numeric>
+
 namespace sun::ui
 {
 ProfilerPanel::ProfilerPanel(std::shared_ptr<lum::ProfilerGPU> profiler)
@@ -28,13 +30,14 @@ void ProfilerPanel::Render()
             return;
         }
 
-        // prepare data for plotting
+        // prepare data for plotting and displaying
         std::vector<const char*> ilabels(markerCount);
         double positions[lum::ProfilerGPU::MAX_FRAMES_STORAGE];
 
         std::vector<float> datas(lum::ProfilerGPU::MAX_FRAMES_STORAGE * markerCount);
 
-        size_t frameCount = frameStats.size() - 1;
+        size_t frameCount = frameStats.size();
+        std::vector<float> means(markerCount, .0f);
         for (int i = 0; i < frameCount; i++)
         {
             positions[i] = static_cast<double>(i);
@@ -45,10 +48,30 @@ void ProfilerPanel::Render()
                     ilabels[j] = frameStats[0].scopeHandles[j].c_str();
                 uint64_t passTime = frameStats[i].elapsedTimes[j];
                 //convert to milliseconds
-                datas[j * frameCount + i] = static_cast<float>(passTime) / 1000000.f;
+                float timeMs = static_cast<float>(passTime) / 1000000.f;
+                datas[j * frameCount + i] = timeMs;
+                means[j] += timeMs;
             }
         }
 
+        std::transform(means.begin(), means.end(), means.begin(), [&](float val){ return val / lum::ProfilerGPU::MAX_FRAMES_STORAGE; });
+        float meanFrameTotal = std::accumulate(means.begin(), means.end(), .0f);
+
+        ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_DrawLinesFull;
+
+        ImGui::PushID("Means");
+        bool opened = ImGui::TreeNodeEx("", flags);
+        ImGui::SameLine();
+        ImGui::Text("Frame - %lf ms", meanFrameTotal);
+        if (opened)
+        {
+            for (int i = 0; i < markerCount; i++)
+            {
+                ImGui::Text("%s - %lf ms", ilabels[i], means[i]);
+            }
+            ImGui::TreePop();
+        }
+        ImGui::PopID();
         if (ImPlot::BeginPlot("Frame profile"))
         {
             ImPlot::SetupLegend(ImPlotLocation_East, ImPlotLegendFlags_Outside);
