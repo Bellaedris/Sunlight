@@ -31,25 +31,28 @@ void ViewportPanel::Render()
         ImGui::BeginChild("Toolbox", ImVec2(availableSize.x, iconSize));
         {
             // play/pause
-            if (ImGui::Button(m_state->temp.isPlaying ? ICON_FA_PLAY : ICON_FA_STOP))
+            if (ImGui::Button(m_state->temp.isPlaying ? ICON_FA_STOP : ICON_FA_PLAY))
             {
                 if (m_state->temp.isPlaying)
                 {
+                    // call OnStop() for all components
+                    m_scene->OnStop();
                     // restore the original scene without saving what has moved
                     m_scene->Deserialize(m_state->persistent.activeScenePath);
-                    m_state->temp.isPlaying = false;
-                    // call OnStop() for all components
+                    // pointers are invalidated after scene reload
+                    m_state->temp.m_selectedNode = nullptr;
                 }
                 else
                 {
                     // start the sim: do a backup of the scene, call OnPlay() on all components
                     // backup the scene
                     m_scene->Serialize();
+                    m_scene->OnPlay();
                 }
-                m_state->temp.isPlaying = true;
+                m_state->temp.isPlaying = !m_state->temp.isPlaying;
             }
-            ImGui::EndChild();
         }
+        ImGui::EndChild();
 
         if (m_lastViewportSize.x != availableSize.x || m_lastViewportSize.y != availableSize.y)
         {
