@@ -28,11 +28,12 @@ namespace sun
 Sunlight::Sunlight(int width, int height)
     : App(width, height, 4, 6)
     , m_imguiContext(std::make_unique<ImGuiContext>(m_window))
-    , m_scene(std::make_shared<lum::rdr::SceneDesc>())
     , m_rendererManager(std::make_shared<lum::RendererManager>(1, 1, m_internalEvents))
-    , m_renderer(std::make_shared<lum::rdr::RenderPipeline>("pipelinePBR"))
-    , m_rendererNPR(std::make_shared<lum::rdr::RenderPipeline>("pipelineNPR"))
     , m_profilerGPU(std::make_shared<lum::ProfilerGPU>())
+    , m_physicsEngine(std::make_unique<lum::PhysicsSystem>())
+    , m_scriptEngine(std::make_unique<lum::ScriptEngine>())
+    , m_systemProvider(std::make_unique<lum::SystemProvider>(m_physicsEngine.get(), m_scriptEngine.get()))
+    , m_scene(std::make_shared<lum::rdr::SceneDesc>(m_systemProvider.get()))
     , m_editor(std::make_unique<Editor>(m_internalEvents, m_scene, m_rendererManager, m_profilerGPU))
 {
 }
@@ -89,8 +90,6 @@ void Sunlight::Init()
     m_rendererManager->AddPipeline(npr);
     m_rendererManager->SetActivePipeline(0);
 
-    m_activeRenderer = m_renderer;
-
     lum::gpu::GLUtils::ClearColor({.2f, .2f, .2f, 1.f});
     lum::gpu::GLUtils::SetDepthTesting(true);
 
@@ -100,6 +99,7 @@ void Sunlight::Init()
 void Sunlight::Render()
 {
     lum::gpu::GLUtils::Clear();
+    m_imguiContext->BeginFrame();
 
     lum::rdr::FrameData frame
     {
@@ -115,58 +115,18 @@ void Sunlight::Render()
         renderer += 1;
     }
 
-    // if (lum::InputManager::IsMouseButtonReleased(lum::MouseButton::lRightClick))
-    // {
-    //     m_profilerGPU->Reset();
-    //     m_rendererManager->SetActivePipeline(0);
-    // }
     m_scene->RootNode()->Update(m_deltaTime);
     m_profilerGPU->BeginFrame();
     m_rendererManager->Render(frame);
     m_profilerGPU->EndFrame();
+
+    m_editor->Render();
+
+    m_imguiContext->EndFrame();
 }
 
 void Sunlight::RenderUI()
 {
-    m_imguiContext->BeginFrame();
-    // ImGui::BeginMainMenuBar();
-    // if (ImGui::BeginMenu("Stats"))
-    // {
-    //     // debug-only view
-    //     ImGui::SetNextWindowPos({0, 0}, 0, {0, 0});
-    //     ImGui::Begin(
-    //             "Infos",
-    //             nullptr,
-    //             ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoDocking |
-    //             ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_AlwaysAutoResize
-    //     );
-    //     {
-    //         ImGui::Text("Lumiere version %d.%d", LUMIERE_VERSION_MAJOR, LUMIERE_VERSION_MINOR);
-    //         ImGui::Text("OpenGL%s", api);
-    //         ImGui::Text("%s %s", vendor, gpu);
-    //
-    //         float average = 0.0f;
-    //         for (float n: framerate)
-    //             average += n;
-    //         average /= (float) IM_ARRAYSIZE(framerate);
-    //         ImGui::Text("Average %02fFPS", average);
-    //         uint64_t elapsedGPU = m_gpuDeltaTime.Elapsed();
-    //         // ugly way to convert to a readable format but I'm kinda lazy and don't want to fight both
-    //         // std::chrono types and c strings
-    //         float cpuSeconds = m_deltaTime * 1000.f;
-    //         int milli = (int) (elapsedGPU / 1000000);
-    //         int micro = (int) ((elapsedGPU / 1000) % 1000);
-    //         ImGui::Text(
-    //                 "cpu %03fms\ngpu %02dms % 03dus",
-    //                 cpuSeconds,
-    //                 milli, micro
-    //         );
-    //         ImGui::End();
-    //     }
-    //     ImGui::EndMenu();
-    // }
-    // ImGui::EndMainMenuBar();
-    m_editor->Render();
-    m_imguiContext->EndFrame();
+
 }
 } // sun

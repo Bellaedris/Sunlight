@@ -8,6 +8,8 @@
 
 #include "Editor.h"
 #include "ImGuiContext.h"
+#include "Lumiere/Systems/PhysicsSystem.h"
+#include "Lumiere/Systems/ScriptEngine.h"
 #include "Lumiere/RendererManager.h"
 #include "Lumiere/Events/EventHandler.h"
 #include "Lumiere/Renderer/RenderPipeline.h"
@@ -24,13 +26,13 @@ namespace sun
     private:
         #pragma region Members
         std::unique_ptr<ImGuiContext> m_imguiContext;
-        std::shared_ptr<lum::rdr::SceneDesc> m_scene;
 
         std::shared_ptr<lum::RendererManager> m_rendererManager;
-        std::shared_ptr<lum::rdr::RenderPipeline> m_activeRenderer {nullptr};
-        std::shared_ptr<lum::rdr::RenderPipeline> m_rendererNPR;
-        std::shared_ptr<lum::rdr::RenderPipeline> m_renderer;
         std::shared_ptr<lum::ProfilerGPU> m_profilerGPU;
+        std::unique_ptr<lum::PhysicsSystem> m_physicsEngine;
+        std::unique_ptr<lum::ScriptEngine> m_scriptEngine;
+        std::unique_ptr<lum::SystemProvider> m_systemProvider;
+        std::shared_ptr<lum::rdr::SceneDesc> m_scene;
         std::unique_ptr<Editor> m_editor;
 
         int renderer {0};
