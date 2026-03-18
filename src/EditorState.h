@@ -24,6 +24,7 @@ struct EditorState
     {
         lum::Node3D* m_selectedNode;
         bool shouldNotifyViewportChange {false};
+        bool isPlaying {false};
         // TODO the camera should be stored in the persistent storage, but since we use a weird camera model that does
         // not depend on gameplay/editor for now, i'll just leave it here
         lum::rdr::Camera* viewportCamera;

@@ -32,7 +32,7 @@ Editor::Editor
     LUM_SUB_TO_EVENT(m_events, lum::evt::EventType::FrameRendered, Editor::OnEvent);
     LUM_SUB_TO_EVENT(m_events, lum::evt::WindowResized, Editor::OnEvent);
 
-    m_panels.emplace_back(std::make_unique<ui::ViewportPanel>(m_state));
+    m_panels.emplace_back(std::make_unique<ui::ViewportPanel>(m_state, m_scene));
     m_panels.emplace_back(std::make_unique<ui::RenderSettingsPanel>(m_pipeline));
     m_panels.emplace_back(std::make_unique<ui::ProfilerPanel>(profiler));
     m_panels.emplace_back(std::make_unique<ui::SceneHierarchyPanel>(m_scene, m_state));
@@ -59,13 +59,6 @@ void Editor::Render()
     for (const auto& panel : m_panels)
         panel->Render();
     ImGui::PopStyleVar(3);
-
-    ImGui::Begin("tests");
-    {
-        if (ImGui::Button("Shader Reload"))
-            lum::ResourcesManager::Instance()->ShaderHotReload();
-    }
-    ImGui::End();
 
     if (m_state->temp.shouldNotifyViewportChange)
     {
