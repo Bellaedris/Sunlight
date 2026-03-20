@@ -190,9 +190,9 @@ void InspectorPanel::DrawTransformInspector(lum::comp::Transform &transform, ImG
         });
 
         ImGui::TableNextRow();
-        TransformSlider("Rotation", transform.LocalRotation(), .0f, [&](const glm::vec3& vector)
+        TransformSlider("Rotation", transform.EulerAngles(), .0f, [&](const glm::vec3& vector)
         {
-            transform.SetLocalRotation(vector);
+            transform.SetEulerAngles(vector);
         });
 
         ImGui::TableNextRow();
