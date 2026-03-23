@@ -116,6 +116,7 @@ void Sunlight::Render()
     }
 
     m_scriptEngine->Update(m_deltaTime);
+    m_physicsEngine->Update();
     m_scene->RootNode()->Update(m_deltaTime);
     m_profilerGPU->BeginFrame();
     m_rendererManager->Render(frame);

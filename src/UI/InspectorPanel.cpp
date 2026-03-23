@@ -4,9 +4,12 @@
 
 #include "InspectorPanel.h"
 
+#include "Lumiere/Components/BoxCollider.h"
 #include "Lumiere/Components/Light.h"
 #include "Lumiere/Components/MeshRenderer.h"
+#include "Lumiere/Components/Rigidbody.h"
 #include "Lumiere/Components/Script.h"
+#include "Lumiere/Components/SphereCollider.h"
 #include "imgui/IconsFontAwesome4.h"
 #include "imgui/ImGuizmo.h"
 #include "imgui/imgui_internal.h"
@@ -42,20 +45,15 @@ void InspectorPanel::Render()
 
             // size of a single font element, to add trash icon
             float elementHeight = ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y * 2.0f;
+
             // Components
             // Mesh Renderer
-            if (std::optional<lum::comp::MeshRenderer*> mr = node->GetComponent<lum::comp::MeshRenderer>())
-            {
-                lum::comp::MeshRenderer* renderer = mr.value();
-
-                ImGui::PushID("MeshRenderer");
-                bool open = ImGui::TreeNodeEx(ICON_FA_CUBE " Mesh Renderer", flags);
-                ImGui::SameLine(ImGui::GetContentRegionAvail().x - elementHeight);
-                if (ImGui::Button(ICON_FA_TRASH))
-                {
-                    node->RemoveComponent(renderer);
-                }
-                if (open)
+            ComponentInspectorNode<lum::comp::MeshRenderer>(
+                node,
+                "Mesh Renderer",
+                ICON_FA_CUBE,
+                flags,
+                [&](lum::comp::MeshRenderer* renderer)
                 {
                     if (ImGui::Button("Pick a mesh"))
                     {
@@ -66,31 +64,16 @@ void InspectorPanel::Render()
                     {
                         DrawMeshDetails(renderer);
                     }
-                    ImGui::TreePop();
                 }
-
-                m_fileBrowser.Display();
-                if (m_fileBrowser.HasSelected())
-                {
-                    renderer->SetMesh(m_fileBrowser.GetSelected().string());
-                    m_fileBrowser.ClearSelected();
-                }
-                ImGui::PopID();
-            }
+            );
 
             // Script
-            if (std::optional<lum::comp::Script*> s = node->GetComponent<lum::comp::Script>())
-            {
-                lum::comp::Script* script = s.value();
-
-                ImGui::PushID("Script");
-                bool open = ImGui::TreeNodeEx(ICON_FA_FILE_CODE_O " Lua Script", flags);
-                ImGui::SameLine(ImGui::GetContentRegionAvail().x - elementHeight);
-                if (ImGui::Button(ICON_FA_TRASH))
-                {
-                    node->RemoveComponent(script);
-                }
-                if (open)
+            ComponentInspectorNode<lum::comp::Script>(
+                node,
+                "Script",
+                ICON_FA_FILE_CODE_O,
+                flags,
+                [&](lum::comp::Script* script)
                 {
                     if (script->Path().empty() == false)
                     {
@@ -103,31 +86,16 @@ void InspectorPanel::Render()
                         // load a mesh from file/resourcesManager
                         m_scriptBrowser.Open();
                     }
-                    ImGui::TreePop();
                 }
-
-                m_scriptBrowser.Display();
-                if (m_scriptBrowser.HasSelected())
-                {
-                    script->SetScriptPath(m_scriptBrowser.GetSelected().string());
-                    m_scriptBrowser.ClearSelected();
-                }
-                ImGui::PopID();
-            }
+            );
 
             // Light
-            if (std::optional<lum::comp::Light*> l = node->GetComponent<lum::comp::Light>())
-            {
-                lum::comp::Light* light = l.value();
-
-                ImGui::PushID("Light");
-                bool open = ImGui::TreeNodeEx(ICON_FA_LIGHTBULB_O " Light", flags);
-                ImGui::SameLine(ImGui::GetContentRegionAvail().x - elementHeight);
-                if (ImGui::Button(ICON_FA_TRASH))
-                {
-                    node->RemoveComponent(light);
-                }
-                if (open)
+            ComponentInspectorNode<lum::comp::Light>(
+                node,
+                "Light",
+                ICON_FA_LIGHTBULB_O,
+                flags,
+                [&](lum::comp::Light* light)
                 {
                     ImGui::Combo("Light type", &light->Type(), lum::comp::Light::LIGHT_TYPES, lum::comp::Light::LIGHT_TYPE_COUNT);
 
@@ -139,10 +107,54 @@ void InspectorPanel::Render()
                     {
                         ImGui::DragFloat("Range", &light->PointRange(), 1.f);
                     }
-                    ImGui::TreePop();
                 }
-                ImGui::PopID();
-            }
+            );
+
+            // Rigidbody
+            ComponentInspectorNode<lum::comp::Rigidbody>(
+                    node,
+                    "Rigidbody",
+                    ICON_FA_SUN_O,
+                    flags,
+                    [&](lum::comp::Rigidbody *rb)
+            {
+                if (ImGui::BeginCombo("Body type", rb->SelectedMotionType()))
+                {
+                    for (int n = 0; n < lum::comp::Rigidbody::DISPLAYABLE_MOTION_TYPES.size(); n++)
+                    {
+                        const bool is_selected = (rb->SelectedMotionTypeIndex() == n);
+                        if (ImGui::Selectable(lum::comp::Rigidbody::DISPLAYABLE_MOTION_TYPES[n], is_selected))
+                            rb->SetSelectedMotionType(n);
+
+                        if (is_selected)
+                            ImGui::SetItemDefaultFocus();
+                    }
+                    ImGui::EndCombo();
+                }
+
+                ImGui::DragFloat("Mass", &rb->Mass(), 1.f, std::numeric_limits<float>::lowest(), std::numeric_limits<float>::max(), "%.6f");
+            });
+
+            // Colliders
+            ComponentInspectorNode<lum::comp::BoxCollider>(
+                    node,
+                    "Box Collider",
+                    ICON_FA_CUBE,
+                    flags,
+                    [&](lum::comp::BoxCollider *bc)
+            {
+                ImGui::DragFloat3("Size", glm::value_ptr(bc->Size()), 1.f,  std::numeric_limits<float>::lowest(), std::numeric_limits<float>::max(), "%.6f");
+            });
+
+            ComponentInspectorNode<lum::comp::SphereCollider>(
+                    node,
+                    "Sphere Collider",
+                    ICON_FA_CIRCLE,
+                    flags,
+                    [&](lum::comp::SphereCollider *sc)
+            {
+                ImGui::DragFloat("Radius", &sc->Radius(), 1.f,  std::numeric_limits<float>::lowest(), std::numeric_limits<float>::max(), "%.6f");
+            });
 
             // new component creation
             float buttonWidth = ImGui::GetContentRegionAvail().x * (2.f / 3.f);
@@ -170,6 +182,9 @@ void InspectorPanel::Render()
                 ComponentCreationButton<lum::comp::MeshRenderer>(node, "Mesh Renderer", ICON_FA_CUBE);
                 ComponentCreationButton<lum::comp::Script>(node, "Lua Script", ICON_FA_FILE_CODE_O);
                 ComponentCreationButton<lum::comp::Light>(node, "Light Source", ICON_FA_LIGHTBULB_O);
+                ComponentCreationButton<lum::comp::Rigidbody>(node, "Rigidbody", ICON_FA_SUN_O);
+                ComponentCreationButton<lum::comp::BoxCollider>(node, "Box Collider", ICON_FA_CUBE);
+                ComponentCreationButton<lum::comp::SphereCollider>(node, "Sphere Collider", ICON_FA_CIRCLE);
                 ImGui::EndPopup();
             }
         }

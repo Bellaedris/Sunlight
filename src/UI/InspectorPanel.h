@@ -6,6 +6,7 @@
 #include "IEditorPanel.h"
 #include "../EditorState.h"
 #include "Lumiere/Components/MeshRenderer.h"
+#include "imgui/IconsFontAwesome4.h"
 #include "imgui/imfilebrowser.h"
 
 namespace sun::ui
@@ -22,6 +23,9 @@ private:
     void DrawMeshDetails(lum::comp::MeshRenderer* renderer);
     void TransformSlider(const char* name, glm::vec3 vector, float defaultValue, std::function<void(const glm::vec3&)> updateVector);
 
+    template<typename T>
+    void ComponentInspectorNode(lum::Node3D* node, const std::string& name, const std::string& icon, ImGuiTreeNodeFlags flags,std::function<void(T*)> callback);
+
     template <typename T>
     void ComponentCreationButton(lum::Node3D* node, const char* name, const char* icon);
 
@@ -30,6 +34,30 @@ public:
 
     void Render() override;
 };
+
+template<typename T>
+void InspectorPanel::ComponentInspectorNode(lum::Node3D* node, const std::string& name, const std::string& icon, ImGuiTreeNodeFlags flags, std::function<void(T*)> callback)
+{
+    if (std::optional<T*> c = node->GetComponent<T>())
+    {
+        T* component = c.value();
+
+        ImGui::PushID(name.c_str());
+        bool open = ImGui::TreeNodeEx((icon + " " + name).c_str(), flags);
+        float elementHeight = ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y * 2.0f;
+        ImGui::SameLine(ImGui::GetContentRegionAvail().x - elementHeight);
+        if (ImGui::Button(ICON_FA_TRASH))
+        {
+            node->RemoveComponent(component);
+        }
+        if (open)
+        {
+            callback(component);
+            ImGui::TreePop();
+        }
+        ImGui::PopID();
+    }
+}
 
 template<typename T>
 void InspectorPanel::ComponentCreationButton(lum::Node3D* node, const char *name, const char* icon)
