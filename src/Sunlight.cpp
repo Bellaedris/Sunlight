@@ -32,7 +32,7 @@ Sunlight::Sunlight(int width, int height)
     , m_profilerGPU(std::make_shared<lum::ProfilerGPU>())
     , m_physicsEngine(std::make_unique<lum::PhysicsSystem>())
     , m_scriptEngine(std::make_unique<lum::ScriptEngine>())
-    , m_systemProvider(std::make_unique<lum::SystemProvider>(m_physicsEngine.get(), m_scriptEngine.get()))
+    , m_systemProvider(std::make_unique<lum::SystemProvider>(m_physicsEngine.get(), m_scriptEngine.get(), m_rendererManager.get()))
     , m_scene(std::make_shared<lum::rdr::SceneDesc>(m_systemProvider.get()))
     , m_editor(std::make_unique<Editor>(m_internalEvents, m_scene, m_rendererManager, m_profilerGPU))
 {
@@ -116,7 +116,7 @@ void Sunlight::Render()
     }
 
     m_scriptEngine->Update(m_deltaTime);
-    m_physicsEngine->Update();
+    m_physicsEngine->Update(m_deltaTime);
     m_scene->RootNode()->Update(m_deltaTime);
     m_profilerGPU->BeginFrame();
     m_rendererManager->Render(frame);

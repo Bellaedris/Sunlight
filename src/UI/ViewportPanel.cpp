@@ -5,6 +5,7 @@
 #include "ViewportPanel.h"
 
 #include "Lumiere/ResourcesManager.h"
+#include "Lumiere/Components/Collider.h"
 #include "Lumiere/Events/RenderEvents.h"
 #include "Lumiere/Renderer/RenderPipeline.h"
 #include "Lumiere/Renderer/Passes/ShadeNPR.h"
@@ -17,7 +18,12 @@ ViewportPanel::ViewportPanel(const std::shared_ptr<EditorState>& editorState, co
     : m_state(editorState)
     , m_scene(scene)
 {
-
+    // initial guizmo loading on viewport creation (after the scene has been deserialized)
+    m_scene->ForEachNode([](lum::Node3D* node)
+    {
+        for (auto&& c : node->Components())
+            c->RegisterGuizmo();
+    });
 }
 
 void ViewportPanel::Render()
@@ -89,7 +95,7 @@ void ViewportPanel::Render()
         // we change the UVs because of OpenGL's flipped Y axis
         ImGui::Image(m_lastRenderedFrame->Handle(), ImVec2(size.x, size.y), ImVec2(0, 1), ImVec2(1, 0));
 
-        // draw guizmos
+        // draw transform guizmos
         lum::Node3D* selected = m_state->temp.m_selectedNode;
         if (selected != nullptr)
         {
@@ -105,13 +111,13 @@ void ViewportPanel::Render()
             ImVec2 pos = ImGui::GetWindowPos();
             ImGuizmo::SetDrawlist(ImGui::GetCurrentWindow()->DrawList);
             ImGuizmo::SetRect(pos.x, pos.y, m_lastViewportSize.x, m_lastViewportSize.y);
-            lum::comp::Transform& t = selected->GetTransform();
+            lum::comp::Transform* t = selected->GetTransform();
             bool manipulated = ImGuizmo::Manipulate(
                     glm::value_ptr(m_state->temp.viewportCamera->View()),
                     glm::value_ptr(m_state->temp.viewportCamera->Projection()),
                     mCurrentGizmoOperation,
                     mCurrentGizmoMode,
-                    glm::value_ptr(t.Model()),
+                    glm::value_ptr(t->Model()),
                     nullptr,
                     nullptr);
             // since we directly edit the model matrix, we need to retrieve the individual components
@@ -120,12 +126,20 @@ void ViewportPanel::Render()
                 float translation[3];
                 float rotation[3];
                 float scale[3];
-                ImGuizmo::DecomposeMatrixToComponents(glm::value_ptr(t.Model()), translation, rotation, scale);
-                t.SetLocalPosition(glm::vec3(translation[0], translation[1], translation[2]));
-                t.SetLocalRotation(glm::vec3(rotation[0], rotation[1], rotation[2]));
-                t.SetLocalScale(glm::vec3(scale[0], scale[1], scale[2]));
+                ImGuizmo::DecomposeMatrixToComponents(glm::value_ptr(t->Model()), translation, rotation, scale);
+                t->SetLocalPosition(glm::vec3(translation[0], translation[1], translation[2]));
+                t->SetLocalRotation(glm::vec3(rotation[0], rotation[1], rotation[2]));
+                t->SetLocalScale(glm::vec3(scale[0], scale[1], scale[2]));
             }
         }
+        // if we're in play mode, we want to refresh guizmos each frame if something moves
+        if (m_state->temp.isPlaying)
+            m_scene->ForEachNode([](lum::Node3D* node)
+            {
+                for (auto&& c : node->Components())
+                    c->RegisterGuizmo();
+            });
+
     }
     ImGui::End();
 }

@@ -32,15 +32,15 @@ Editor::Editor
     LUM_SUB_TO_EVENT(m_events, lum::evt::EventType::FrameRendered, Editor::OnEvent);
     LUM_SUB_TO_EVENT(m_events, lum::evt::WindowResized, Editor::OnEvent);
 
+    m_state->Deserialize();
+    if (m_state->persistent.activeScenePath.empty() == false)
+        m_scene->Deserialize(m_state->persistent.activeScenePath);
+
     m_panels.emplace_back(std::make_unique<ui::ViewportPanel>(m_state, m_scene));
     m_panels.emplace_back(std::make_unique<ui::RenderSettingsPanel>(m_pipeline));
     m_panels.emplace_back(std::make_unique<ui::ProfilerPanel>(profiler));
     m_panels.emplace_back(std::make_unique<ui::SceneHierarchyPanel>(m_scene, m_state));
     m_panels.emplace_back(std::make_unique<ui::InspectorPanel>(m_state));
-
-    m_state->Deserialize();
-    if (m_state->persistent.activeScenePath.empty() == false)
-        m_scene->Deserialize(m_state->persistent.activeScenePath);
 }
 
 Editor::~Editor()
