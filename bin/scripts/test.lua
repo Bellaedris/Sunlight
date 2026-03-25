@@ -8,6 +8,14 @@ function Start()
     else
         print(m.mesh:name())
     end
+
+    local r = Ray(vec3(0, 0, 0), vec3(1, 0, 0), 10000)
+    local result = Physics:Raycast(r)
+    if(result ~= nil) then
+        print(result.node:name())
+    else
+        print("no hit")
+    end
 end
 
 function Update(dt)
