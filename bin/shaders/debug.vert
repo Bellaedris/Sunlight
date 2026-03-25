@@ -1,6 +1,9 @@
-#version 460 core
+#version 460
 
 layout(location = 0) in vec3 iPos;
+layout(location = 1) in vec3 iColor;
+
+out vec3 color;
 
 layout(std140, binding = 0) uniform CameraData
 {
@@ -8,13 +11,12 @@ layout(std140, binding = 0) uniform CameraData
     mat4 inverseViewMatrix;
     mat4 projectionMatrix;
     mat4 inverseProjectionMatrix;
-    vec3 viewPosition;
+    vec3 position;
     float znear;
     float zfar;
 };
 
-uniform mat4 modelMatrix;
-
 void main() {
-    gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4(iPos, 1.f);
+    color = iColor;
+    gl_Position = projectionMatrix * viewMatrix * vec4(iPos, 1.f);
 }

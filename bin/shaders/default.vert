@@ -11,7 +11,12 @@ out vec2 texcoord;
 layout(std140, binding = 0) uniform CameraData
 {
     mat4 viewMatrix;
+    mat4 inverseViewMatrix;
     mat4 projectionMatrix;
+    mat4 inverseProjectionMatrix;
+    vec3 position;
+    float znear;
+    float zfar;
 };
 
 void main() {

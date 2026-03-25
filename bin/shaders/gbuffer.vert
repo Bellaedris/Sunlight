@@ -14,8 +14,12 @@ out mat3 tbn;
 layout(std140, binding = 0) uniform CameraData
 {
     mat4 viewMatrix;
+    mat4 inverseViewMatrix;
     mat4 projectionMatrix;
-    vec3 camPosition;
+    mat4 inverseProjectionMatrix;
+    vec3 cameraPosition;
+    float znear;
+    float zfar;
 };
 
 uniform mat4 modelMatrix;

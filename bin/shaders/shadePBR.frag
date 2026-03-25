@@ -17,8 +17,12 @@ layout(binding = 5) uniform sampler2D GBufferDepth;
 layout(std140, binding = 0) uniform CameraData
 {
     mat4 viewMatrix;
+    mat4 inverseViewMatrix;
     mat4 projectionMatrix;
+    mat4 inverseProjectionMatrix;
     vec3 viewPosition;
+    float znear;
+    float zfar;
 };
 
 #define MAX_POINT_LIGHTS 50
