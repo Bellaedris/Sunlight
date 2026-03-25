@@ -4,6 +4,7 @@
 
 #include "InspectorPanel.h"
 
+#include "Lumiere/ResourcesManager.h"
 #include "Lumiere/Components/BoxCollider.h"
 #include "Lumiere/Components/Light.h"
 #include "Lumiere/Components/MeshRenderer.h"
@@ -55,11 +56,28 @@ void InspectorPanel::Render()
                 flags,
                 [&](lum::comp::MeshRenderer* renderer)
                 {
-                    if (ImGui::Button("Pick a mesh"))
+                    if (ImGui::Button("Load mesh from file"))
                     {
                         // load a mesh from file/resourcesManager
                         m_fileBrowser.Open();
                     }
+                    ImGui::PushID("Asset selection");
+                    if (ImGui::BeginCombo("", "Asset selection"))
+                    {
+                        std::vector<std::pair<std::string, std::string>> resources = lum::ResourcesManager::Instance()->MeshNames();
+                        for (const auto& resource : resources)
+                        {
+                            bool selected = false;
+                            if (renderer->Mesh() != nullptr && renderer->Mesh()->Name() == resource.second)
+                                selected = true;
+                            if (ImGui::Selectable(resource.second.c_str(), selected))
+                                renderer->SetMesh(resource.first);
+                            if (selected)
+                                ImGui::SetItemDefaultFocus();
+                        }
+                        ImGui::EndCombo();
+                    }
+                    ImGui::PopID();
                     if (renderer->Mesh() != nullptr)
                     {
                         DrawMeshDetails(renderer);
@@ -143,7 +161,16 @@ void InspectorPanel::Render()
                     flags,
                     [&](lum::comp::BoxCollider *bc)
             {
-                ImGui::DragFloat3("Size", glm::value_ptr(bc->Size()), 1.f,  std::numeric_limits<float>::lowest(), std::numeric_limits<float>::max(), "%.6f");
+                if (ImGui::DragFloat3(
+                        "Size",
+                        glm::value_ptr(bc->Size()),
+                        1.f,
+                        std::numeric_limits<float>::lowest(),
+                        std::numeric_limits<float>::max(),
+                        "%.6f"))
+                {
+                    bc->RegisterGuizmo();
+                };
             });
 
             ComponentInspectorNode<lum::comp::SphereCollider>(
@@ -153,7 +180,16 @@ void InspectorPanel::Render()
                     flags,
                     [&](lum::comp::SphereCollider *sc)
             {
-                ImGui::DragFloat("Radius", &sc->Radius(), 1.f,  std::numeric_limits<float>::lowest(), std::numeric_limits<float>::max(), "%.6f");
+                if (ImGui::DragFloat(
+                        "Radius",
+                        &sc->Radius(),
+                        1.f,
+                        std::numeric_limits<float>::lowest(),
+                        std::numeric_limits<float>::max(),
+                        "%.6f"))
+                {
+                    sc->RegisterGuizmo();
+                }
             });
 
             // new component creation
@@ -192,32 +228,40 @@ void InspectorPanel::Render()
     ImGui::End();
 }
 
-void InspectorPanel::DrawTransformInspector(lum::comp::Transform &transform, ImGuiTreeNodeFlags flags)
+void InspectorPanel::DrawTransformInspector(lum::comp::Transform* transform, ImGuiTreeNodeFlags flags)
 {
     if (ImGui::TreeNodeEx(ICON_FA_ARROWS " Transform", flags))
     {
         ImGui::BeginTable("Transform", 2, ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_PadOuterX);
 
         ImGui::TableNextRow();
-        TransformSlider("Position", transform.LocalPosition(), .0f, [&](const glm::vec3& vector)
+
+        bool shouldReloadGuizmos = false;
+        TransformSlider("Position", transform->LocalPosition(), .0f, [&](const glm::vec3& vector)
         {
-            transform.SetLocalPosition(vector);
+            transform->SetLocalPosition(vector);
+            shouldReloadGuizmos = true;
         });
 
         ImGui::TableNextRow();
-        TransformSlider("Rotation", transform.EulerAngles(), .0f, [&](const glm::vec3& vector)
+        TransformSlider("Rotation", transform->EulerAngles(), .0f, [&](const glm::vec3& vector)
         {
-            transform.SetEulerAngles(vector);
+            transform->SetEulerAngles(vector);
+            shouldReloadGuizmos = true;
         });
 
         ImGui::TableNextRow();
-        TransformSlider("Scale", transform.LocalScale(), 1.f, [&](const glm::vec3& vector)
+        TransformSlider("Scale", transform->LocalScale(), 1.f, [&](const glm::vec3& vector)
         {
-            transform.SetLocalScale(vector);
+            transform->SetLocalScale(vector);
+            shouldReloadGuizmos = true;
         });
         ImGui::EndTable();
 
         ImGui::TreePop();
+        if (shouldReloadGuizmos)
+            for (auto&& c : transform->Node()->Components())
+                c->RegisterGuizmo();
     }
 }
 

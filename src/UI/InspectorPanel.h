@@ -19,7 +19,7 @@ private:
     ImGui::FileBrowser m_fileBrowser;
     ImGui::FileBrowser m_scriptBrowser;
 
-    void DrawTransformInspector(lum::comp::Transform& transform, ImGuiTreeNodeFlags flags);
+    void DrawTransformInspector(lum::comp::Transform* transform, ImGuiTreeNodeFlags flags);
     void DrawMeshDetails(lum::comp::MeshRenderer* renderer);
     void TransformSlider(const char* name, glm::vec3 vector, float defaultValue, std::function<void(const glm::vec3&)> updateVector);
 
