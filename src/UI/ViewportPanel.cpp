@@ -19,11 +19,7 @@ ViewportPanel::ViewportPanel(const std::shared_ptr<EditorState>& editorState, co
     , m_scene(scene)
 {
     // initial guizmo loading on viewport creation (after the scene has been deserialized)
-    m_scene->ForEachNode([](lum::Node3D* node)
-    {
-        for (auto&& c : node->Components())
-            c->RegisterGuizmo();
-    });
+    RegisterGuizmos();
 }
 
 void ViewportPanel::Render()
@@ -47,6 +43,8 @@ void ViewportPanel::Render()
                     m_scene->Deserialize(m_state->persistent.activeScenePath);
                     // pointers are invalidated after scene reload
                     m_state->temp.m_selectedNode = nullptr;
+                    // scene has reloaded, register the guizmos again
+                    RegisterGuizmos();
                 }
                 else
                 {
@@ -140,6 +138,28 @@ void ViewportPanel::Render()
                     c->RegisterGuizmo();
             });
 
+        // handle editor camera movements
+        if (m_state->temp.isPlaying == false && ImGui::IsWindowFocused())
+        {
+            if (lum::InputManager::IsKeyDown(lum::KeyCode::lKeyAlt))
+                m_state->temp.viewportCamera->ProcessMouseMovement(lum::InputManager::GetAxis());
+
+            // get the input axes by reading pressed keys
+            glm::vec3 dir(0, 0, 0);
+            if(lum::InputManager::IsKeyDown(lum::KeyCode::lKeyW))
+                dir += lum::VectorUtils::FORWARD;
+            if(lum::InputManager::IsKeyDown(lum::KeyCode::lKeyA))
+                dir -= lum::VectorUtils::RIGHT;
+            if(lum::InputManager::IsKeyDown(lum::KeyCode::lKeyS))
+                dir -= lum::VectorUtils::FORWARD;
+            if(lum::InputManager::IsKeyDown(lum::KeyCode::lKeyD))
+                dir += lum::VectorUtils::RIGHT;
+            if(lum::InputManager::IsKeyDown(lum::KeyCode::lKeyQ))
+                dir -= lum::VectorUtils::UP;
+            if(lum::InputManager::IsKeyDown(lum::KeyCode::lKeyE))
+                dir += lum::VectorUtils::UP;
+            m_state->temp.viewportCamera->UpdatePosition(dir, m_state->temp.deltaTime);
+        }
     }
     ImGui::End();
 }
@@ -156,5 +176,14 @@ void ViewportPanel::OnEvent(const std::shared_ptr<lum::evt::IEvent> &e)
     {
         m_windowResized = true;
     }
+}
+
+void ViewportPanel::RegisterGuizmos()
+{
+    m_scene->ForEachNode([](lum::Node3D* node)
+    {
+        for (auto&& c : node->Components())
+            c->RegisterGuizmo();
+    });
 }
 } // sun::ui

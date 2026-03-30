@@ -29,6 +29,8 @@ struct EditorState
         // not depend on gameplay/editor for now, i'll just leave it here
         lum::rdr::Camera* viewportCamera;
         glm::ivec2 viewportSize;
+        // TODO it would be better to have a Time.delta time type utility class!
+        float deltaTime;
     } temp;
 
     struct

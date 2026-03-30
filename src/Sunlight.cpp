@@ -28,13 +28,14 @@ namespace sun
 Sunlight::Sunlight(int width, int height)
     : App(width, height, 4, 6)
     , m_imguiContext(std::make_unique<ImGuiContext>(m_window))
-    , m_rendererManager(std::make_shared<lum::RendererManager>(1, 1, m_internalEvents))
+    , m_rendererManager(std::make_shared<lum::RendererManager>(width, height, m_internalEvents))
     , m_profilerGPU(std::make_shared<lum::ProfilerGPU>())
     , m_physicsEngine(std::make_unique<lum::PhysicsSystem>())
     , m_scriptEngine(std::make_unique<lum::ScriptEngine>())
-    , m_systemProvider(std::make_unique<lum::SystemProvider>(m_physicsEngine.get(), m_scriptEngine.get(), m_rendererManager.get()))
+    , m_cameraSystem(std::make_unique<lum::CameraSystem>(width, height, m_internalEvents))
+    , m_systemProvider(std::make_unique<lum::SystemProvider>(m_physicsEngine.get(), m_scriptEngine.get(), m_rendererManager.get(), m_cameraSystem.get()))
     , m_scene(std::make_shared<lum::rdr::SceneDesc>(m_systemProvider.get()))
-    , m_editor(std::make_unique<Editor>(m_internalEvents, m_scene, m_rendererManager, m_profilerGPU))
+    , m_editor(std::make_unique<Editor>(m_internalEvents, m_scene, m_systemProvider.get(), m_profilerGPU))
 {
 }
 
@@ -46,9 +47,6 @@ Sunlight::~Sunlight()
 
 void Sunlight::Init()
 {
-    m_camera = std::make_unique<lum::rdr::Camera>(glm::vec3(0, 0, 0), m_window->AspectRatio(), 70.f, .01f, 100.f);
-    m_scene->SetMainCamera(m_camera.get());
-
     // renderer setup
     lum::rdr::RenderPipeline pbr("pipelinePBR");
     lum::rdr::RenderPipeline npr("pipelineNPR");
@@ -92,8 +90,6 @@ void Sunlight::Init()
 
     lum::gpu::GLUtils::ClearColor({.2f, .2f, .2f, 1.f});
     lum::gpu::GLUtils::SetDepthTesting(true);
-
-    m_editor->SetViewportCamera(m_camera.get());
 }
 
 void Sunlight::Render()
@@ -105,6 +101,7 @@ void Sunlight::Render()
     {
         .scene = m_scene,
         .frameIndex = m_frameIndex,
+        .cameraSystem = m_cameraSystem.get(),
         .profilerGPU = m_profilerGPU
     };
 
@@ -117,12 +114,13 @@ void Sunlight::Render()
 
     m_scriptEngine->Update(m_deltaTime);
     m_physicsEngine->Update(m_deltaTime);
+    m_cameraSystem->Update(m_deltaTime);
     m_scene->RootNode()->Update(m_deltaTime);
     m_profilerGPU->BeginFrame();
     m_rendererManager->Render(frame);
     m_profilerGPU->EndFrame();
 
-    m_editor->Render();
+    m_editor->Render(m_deltaTime);
 
     m_imguiContext->EndFrame();
 }

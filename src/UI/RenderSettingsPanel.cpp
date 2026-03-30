@@ -8,7 +8,7 @@
 
 namespace sun::ui
 {
-RenderSettingsPanel::RenderSettingsPanel(const std::shared_ptr<lum::RendererManager> &renderer)
+RenderSettingsPanel::RenderSettingsPanel(lum::RendererManager* renderer)
     : m_pipeline(renderer)
 {
 

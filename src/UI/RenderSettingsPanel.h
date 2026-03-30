@@ -12,9 +12,9 @@ namespace sun::ui
 class RenderSettingsPanel : public IEditorPanel
 {
 private:
-    std::shared_ptr<lum::RendererManager> m_pipeline;
+    lum::RendererManager* m_pipeline;
 public:
-    RenderSettingsPanel(const std::shared_ptr<lum::RendererManager>& renderer);
+    RenderSettingsPanel(lum::RendererManager* renderer);
     void Render() override;
 };
 } // sun::ui

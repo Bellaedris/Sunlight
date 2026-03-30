@@ -61,6 +61,13 @@ void InspectorPanel::Render()
                         // load a mesh from file/resourcesManager
                         m_fileBrowser.Open();
                     }
+
+                    m_fileBrowser.Display();
+                    if (m_fileBrowser.HasSelected())
+                    {
+                        renderer->SetMesh(m_fileBrowser.GetSelected().string());
+                        m_fileBrowser.ClearSelected();
+                    }
                     ImGui::PushID("Asset selection");
                     if (ImGui::BeginCombo("", "Asset selection"))
                     {
@@ -103,6 +110,12 @@ void InspectorPanel::Render()
                     {
                         // load a mesh from file/resourcesManager
                         m_scriptBrowser.Open();
+                    }
+                    m_scriptBrowser.Display();
+                    if (m_scriptBrowser.HasSelected())
+                    {
+                        script->SetScriptPath(m_scriptBrowser.GetSelected().string());
+                        m_scriptBrowser.ClearSelected();
                     }
                 }
             );
@@ -192,6 +205,39 @@ void InspectorPanel::Render()
                 }
             });
 
+            ComponentInspectorNode<lum::comp::Camera>(
+                    node,
+                    "Camera",
+                    ICON_FA_VIDEO_CAMERA,
+                    flags,
+                    [&](lum::comp::Camera *cam)
+            {
+                if (ImGui::BeginCombo("Projection type", cam->CameraType().c_str()))
+                {
+                    static const char* types[] = {"Perspective", "Orthographic"};
+                    for (int n = 0; n < 2; n++)
+                    {
+                        const bool is_selected = (cam->CameraType().c_str() == types[n]);
+                        if (ImGui::Selectable(types[n], is_selected))
+                            cam->SetCameraType(n == 0);
+
+                        if (is_selected)
+                            ImGui::SetItemDefaultFocus();
+                    }
+                    ImGui::EndCombo();
+                }
+                // perspective specific settings
+                if (cam->IsPerspective())
+                    ImGui::DragFloat("Field of View", &cam->Fov(), 10.f, 0.f, 360.f);
+                else
+                    ImGui::DragFloat("View size", &cam->OrthoSize(), 1.f, 0.f, 1000.f);
+
+                ImGui::DragFloat("Z near", &cam->ZNear(), .1f, 0.f, 1000.f);
+                ImGui::DragFloat("Z far", &cam->ZFar(), .1f, 0.f, 1000.f);
+                ImGui::InputFloat2("Viewport min", glm::value_ptr(cam->ViewportMin()));
+                ImGui::InputFloat2("Viewport max", glm::value_ptr(cam->ViewportMax()));
+            });
+
             // new component creation
             float buttonWidth = ImGui::GetContentRegionAvail().x * (2.f / 3.f);
             float size = ImGui::GetStyle().FramePadding.x * 2.0f;
@@ -221,6 +267,7 @@ void InspectorPanel::Render()
                 ComponentCreationButton<lum::comp::Rigidbody>(node, "Rigidbody", ICON_FA_SUN_O);
                 ComponentCreationButton<lum::comp::BoxCollider>(node, "Box Collider", ICON_FA_CUBE);
                 ComponentCreationButton<lum::comp::SphereCollider>(node, "Sphere Collider", ICON_FA_CIRCLE);
+                ComponentCreationButton<lum::comp::Camera>(node, "Camera", ICON_FA_VIDEO_CAMERA);
                 ImGui::EndPopup();
             }
         }
