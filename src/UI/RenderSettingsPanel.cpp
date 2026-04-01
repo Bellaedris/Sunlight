@@ -8,8 +8,8 @@
 
 namespace sun::ui
 {
-RenderSettingsPanel::RenderSettingsPanel(lum::RendererManager* renderer)
-    : m_pipeline(renderer)
+RenderSettingsPanel::RenderSettingsPanel(const std::shared_ptr<EditorState>& state)
+    : m_state(state)
 {
 
 }
@@ -18,7 +18,7 @@ void RenderSettingsPanel::Render()
 {
     ImGui::Begin("Render Settings");
     {
-        m_pipeline->RenderUI();
+        m_state->temp.systems->m_renderer->RenderUI();
         if (ImGui::Button("Shader Reload"))
             lum::ResourcesManager::Instance()->ShaderHotReload();
     }

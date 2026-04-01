@@ -45,6 +45,7 @@ void ViewportPanel::Render()
                     m_state->temp.m_selectedNode = nullptr;
                     // scene has reloaded, register the guizmos again
                     RegisterGuizmos();
+                    m_state->temp.systems->m_camera->SetCursorVisible(true);
                 }
                 else
                 {
@@ -139,7 +140,17 @@ void ViewportPanel::Render()
             });
 
         // handle editor camera movements
-        if (m_state->temp.isPlaying == false && ImGui::IsWindowFocused())
+        lum::CameraSystem* camSys = m_state->temp.systems->m_camera;
+
+        // if we're playing and press ESC, switch to EditorInPlay cam mode
+        if (lum::InputManager::IsKeyDown(lum::KeyCode::lKeyEsc))
+        {
+            camSys->SetEditorInPlayMode();
+            camSys->SetCursorVisible(true);
+        }
+
+        if ((camSys->CurrentMode() == lum::CameraSystem::Editor || camSys->CurrentMode() ==
+             lum::CameraSystem::EditorInPlay) && ImGui::IsWindowFocused())
         {
             if (lum::InputManager::IsKeyDown(lum::KeyCode::lKeyAlt))
                 m_state->temp.viewportCamera->ProcessMouseMovement(lum::InputManager::GetAxis());

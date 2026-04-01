@@ -27,8 +27,6 @@ Editor::Editor
     : m_events(events)
     , m_state(std::make_shared<EditorState>())
     , m_scene(scene)
-    , m_pipeline(systems->m_renderer)
-    , m_cameraSystem(systems->m_camera)
 {
     LUM_SUB_TO_EVENT(m_events, lum::evt::EventType::FrameRendered, Editor::OnEvent);
     LUM_SUB_TO_EVENT(m_events, lum::evt::WindowResized, Editor::OnEvent);
@@ -36,16 +34,17 @@ Editor::Editor
     m_state->Deserialize();
     if (m_state->persistent.activeScenePath.empty() == false)
         m_scene->Deserialize(m_state->persistent.activeScenePath);
+    m_state->temp.systems = systems;
 
     // we can use any aspect ratio here, the camera will be resized on initial viewport creation
     m_editorCamera = std::make_unique<lum::rdr::Camera>(glm::vec3(0, 0, 0), 16.f / 9.f, 70.f, .01f, 100.f);
     m_editorCamera->SetSensitivity(1.f);
     m_scene->SetMainCamera(m_editorCamera.get());
     m_state->temp.viewportCamera = m_editorCamera.get();
-    m_cameraSystem->SetEditorCamera(m_editorCamera.get());
+    m_state->temp.systems->m_camera->SetEditorCamera(m_editorCamera.get());
 
     m_panels.emplace_back(std::make_unique<ui::ViewportPanel>(m_state, m_scene));
-    m_panels.emplace_back(std::make_unique<ui::RenderSettingsPanel>(m_pipeline));
+    m_panels.emplace_back(std::make_unique<ui::RenderSettingsPanel>(m_state));
     m_panels.emplace_back(std::make_unique<ui::ProfilerPanel>(profiler));
     m_panels.emplace_back(std::make_unique<ui::SceneHierarchyPanel>(m_scene, m_state));
     m_panels.emplace_back(std::make_unique<ui::InspectorPanel>(m_state));

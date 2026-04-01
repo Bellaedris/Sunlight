@@ -25,8 +25,6 @@ private:
     std::shared_ptr<lum::evt::EventHandler> m_events;
     std::shared_ptr<EditorState> m_state;
     std::shared_ptr<lum::rdr::SceneDesc> m_scene;
-    lum::RendererManager* m_pipeline;
-    lum::CameraSystem* m_cameraSystem;
 public:
     Editor(const std::shared_ptr<lum::evt::EventHandler>& events, const std::shared_ptr<lum::rdr::SceneDesc>& scene, lum::SystemProvider* systems, const std::shared_ptr<lum::ProfilerGPU>& profiler);
     ~Editor();

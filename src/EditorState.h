@@ -31,6 +31,7 @@ struct EditorState
         glm::ivec2 viewportSize;
         // TODO it would be better to have a Time.delta time type utility class!
         float deltaTime;
+        lum::SystemProvider* systems {nullptr};
     } temp;
 
     struct

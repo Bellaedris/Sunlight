@@ -16,28 +16,31 @@ function Clamp(number, min, max)
 end
 
 function Start()
-    -- empty
+    SetCursorVisible(false)
 end
 
 local rotX = 0
 local rotY = 0
 
 function Update(dt)
+    local t = node.transform
     -- movements
     local movement = vec3(0, 0, 0)
     if (IsKeyDown(KeyCode.W)) then
-        movement.x = speed * dt
-    end
-    if (IsKeyDown(KeyCode.A)) then
-        movement.z = -speed * dt
+        movement =  t.forward * speed * dt
     end
     if (IsKeyDown(KeyCode.S)) then
-        movement.x = movement.x - speed * dt
+        movement = movement - t.forward * speed * dt
+    end
+    if (IsKeyDown(KeyCode.A)) then
+        movement = movement + t.right * -speed * dt
     end
     if (IsKeyDown(KeyCode.D)) then
-        movement.z = movement.z + speed * dt
+        movement = movement + t.right * speed * dt
     end
-    node.transform:Translate(movement)
+    -- remove movement in Y axis!!
+    movement.y = 0
+    t:Translate(movement)
 
     -- camera rotation
     local axis = GetAxis()
@@ -50,8 +53,9 @@ function Update(dt)
     if(IsMouseButtonPressed(MouseButton.LeftClick)) then
         local ray = Ray(node.transform.position, node.transform.forward, 1000);
         local res = Physics:Raycast(ray);
-        if(res ~= nil) then
-            print(res.node.name)
+        if (res ~= nil) then
+            -- Events.Emit("RaycastHitBroadcast")
+            Message(res.node, "RaycastHit", res)
         end
     end
 end

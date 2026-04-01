@@ -2,28 +2,20 @@ local elapsed = 0
 
 function Start()
     print("starting")
-    local m = node:GetMeshComponent()
-    if(m == nil) then
-        print("No mesh found")
-    else
-        print(m.mesh:name())
-    end
-
-    local r = Ray(vec3(0, 0, 0), vec3(1, 0, 0), 10000)
-    local result = Physics:Raycast(r)
-    if(result ~= nil) then
-        print(result.node.name)
-    else
-        print("no hit")
-    end
+    Events.Subscribe("RaycastHit", OnRaycastHitBroadcast)
 end
 
 function Update(dt)
-    if(IsKeyDown(KeyCode.W)) then
-        node.transform:Translate(vec3(1 * dt, 0, 0))
-    end
     -- t.position = vec3(t.position.x, t.position.y, math.cos(elapsed * 5) * 10)
     -- t.localPosition = vec3(0, math.sin(elapsed), math.cos(elapsed))
     --t:Translate(vec3(0, dt, 0))
     elapsed = elapsed + dt
+end
+
+function OnRaycastHitBroadcast()
+    print("A raycast was hit. This object received the broadcast: ", node.name)
+end
+
+function RaycastHit(hitInfo)
+    print(node.name, " was hit by a raycast with distance ", hitInfo.distance)
 end

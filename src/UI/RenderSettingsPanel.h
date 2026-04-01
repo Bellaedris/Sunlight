@@ -5,16 +5,16 @@
 #pragma once
 #include "IEditorPanel.h"
 #include "Lumiere/RendererManager.h"
-#include "Lumiere/Renderer/RenderPipeline.h"
+#include "../EditorState.h"
 
 namespace sun::ui
 {
 class RenderSettingsPanel : public IEditorPanel
 {
 private:
-    lum::RendererManager* m_pipeline;
+    std::shared_ptr<EditorState> m_state;
 public:
-    RenderSettingsPanel(lum::RendererManager* renderer);
+    RenderSettingsPanel(const std::shared_ptr<EditorState>& state);
     void Render() override;
 };
 } // sun::ui
