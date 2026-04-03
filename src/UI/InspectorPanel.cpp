@@ -164,6 +164,8 @@ void InspectorPanel::Render()
                 }
 
                 ImGui::DragFloat("Mass", &rb->Mass(), 1.f, std::numeric_limits<float>::lowest(), std::numeric_limits<float>::max(), "%.6f");
+                ImGui::DragFloat("Linear damping", &rb->LinearDamping(), .1f, std::numeric_limits<float>::lowest(), std::numeric_limits<float>::max(), "%.6f");
+                ImGui::DragFloat("Angular damping", &rb->AngularDamping(), .1f, std::numeric_limits<float>::lowest(), std::numeric_limits<float>::max(), "%.6f");
             });
 
             // Colliders
