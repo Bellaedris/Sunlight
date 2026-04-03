@@ -24,7 +24,7 @@ private:
     bool m_isResizing    {false};
     bool m_initialized   {false};
 
-    void RegisterGuizmos();
+    void ActivateGuizmos(bool activate);
 public:
     ViewportPanel(const std::shared_ptr<EditorState>& editorState, const std::shared_ptr<lum::rdr::SceneDesc>& scene);
     void Render() override;

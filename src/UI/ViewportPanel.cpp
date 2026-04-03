@@ -4,6 +4,7 @@
 
 #include "ViewportPanel.h"
 
+#include "glm/gtx/matrix_decompose.hpp"
 #include "Lumiere/ResourcesManager.h"
 #include "Lumiere/Components/Collider.h"
 #include "Lumiere/Events/RenderEvents.h"
@@ -19,7 +20,7 @@ ViewportPanel::ViewportPanel(const std::shared_ptr<EditorState>& editorState, co
     , m_scene(scene)
 {
     // initial guizmo loading on viewport creation (after the scene has been deserialized)
-    RegisterGuizmos();
+    ActivateGuizmos(true);
 }
 
 void ViewportPanel::Render()
@@ -44,15 +45,17 @@ void ViewportPanel::Render()
                     // pointers are invalidated after scene reload
                     m_state->temp.m_selectedNode = nullptr;
                     // scene has reloaded, register the guizmos again
-                    RegisterGuizmos();
+                    ActivateGuizmos(true);
                     m_state->temp.systems->m_camera->SetCursorVisible(true);
                 }
                 else
                 {
                     // start the sim: do a backup of the scene, call OnPlay() on all components
-                    // backup the scene
-                    m_scene->Serialize();
+                    // backup the scene and save the current editor scene
+                    if (std::optional<std::string> activePath = m_scene->Serialize())
+                        m_state->persistent.activeScenePath = activePath.value();
                     m_scene->OnPlay();
+                    ActivateGuizmos(false);
                 }
                 m_state->temp.isPlaying = !m_state->temp.isPlaying;
             }
@@ -95,8 +98,10 @@ void ViewportPanel::Render()
         ImGui::Image(m_lastRenderedFrame->Handle(), ImVec2(size.x, size.y), ImVec2(0, 1), ImVec2(1, 0));
 
         // draw transform guizmos
+        lum::CameraSystem* camSys = m_state->temp.systems->m_camera;
         lum::Node3D* selected = m_state->temp.m_selectedNode;
-        if (selected != nullptr)
+        if (selected != nullptr && (camSys->CurrentMode() == lum::CameraSystem::Editor || camSys->CurrentMode() ==
+             lum::CameraSystem::EditorInPlay))
         {
             static ImGuizmo::OPERATION mCurrentGizmoOperation(ImGuizmo::ROTATE);
             static ImGuizmo::MODE mCurrentGizmoMode(ImGuizmo::LOCAL);
@@ -109,11 +114,11 @@ void ViewportPanel::Render()
 
             ImVec2 pos = ImGui::GetWindowPos();
             ImGuizmo::SetDrawlist(ImGui::GetCurrentWindow()->DrawList);
-            ImGuizmo::SetRect(pos.x, pos.y, m_lastViewportSize.x, m_lastViewportSize.y);
+            ImGuizmo::SetRect(pos.x, pos.y, availableSize.x, availableSize.y - iconSize);
             lum::comp::Transform* t = selected->GetTransform();
             bool manipulated = ImGuizmo::Manipulate(
-                    glm::value_ptr(m_state->temp.viewportCamera->View()),
-                    glm::value_ptr(m_state->temp.viewportCamera->Projection()),
+                    glm::value_ptr(camSys->CameraData().viewMatrix),
+                    glm::value_ptr(camSys->CameraData().projectionMatrix),
                     mCurrentGizmoOperation,
                     mCurrentGizmoMode,
                     glm::value_ptr(t->Model()),
@@ -122,32 +127,27 @@ void ViewportPanel::Render()
             // since we directly edit the model matrix, we need to retrieve the individual components
             if (manipulated)
             {
-                float translation[3];
-                float rotation[3];
-                float scale[3];
-                ImGuizmo::DecomposeMatrixToComponents(glm::value_ptr(t->Model()), translation, rotation, scale);
-                t->SetLocalPosition(glm::vec3(translation[0], translation[1], translation[2]));
-                t->SetLocalRotation(glm::vec3(rotation[0], rotation[1], rotation[2]));
-                t->SetLocalScale(glm::vec3(scale[0], scale[1], scale[2]));
+                glm::quat rotation;
+                glm::vec3 scale, position, skew;
+                glm::vec4 perspective;
+                glm::decompose(t->Model(), scale, rotation, position, skew, perspective);
+                t->SetPosition(position);
+                t->SetRotation(rotation);
+                t->SetScale(scale);
             }
         }
-        // if we're in play mode, we want to refresh guizmos each frame if something moves
-        if (m_state->temp.isPlaying)
-            m_scene->ForEachNode([](lum::Node3D* node)
-            {
-                for (auto&& c : node->Components())
-                    c->RegisterGuizmo();
-            });
 
         // handle editor camera movements
-        lum::CameraSystem* camSys = m_state->temp.systems->m_camera;
-
         // if we're playing and press ESC, switch to EditorInPlay cam mode
         if (lum::InputManager::IsKeyDown(lum::KeyCode::lKeyEsc))
         {
             camSys->SetEditorInPlayMode();
             camSys->SetCursorVisible(true);
         }
+
+        // if we're in play mode, we want to refresh guizmos each frame if something moves
+        if (m_state->temp.isPlaying && camSys->CurrentMode() == lum::CameraSystem::EditorInPlay)
+            ActivateGuizmos(true);
 
         if ((camSys->CurrentMode() == lum::CameraSystem::Editor || camSys->CurrentMode() ==
              lum::CameraSystem::EditorInPlay) && ImGui::IsWindowFocused())
@@ -189,12 +189,12 @@ void ViewportPanel::OnEvent(const std::shared_ptr<lum::evt::IEvent> &e)
     }
 }
 
-void ViewportPanel::RegisterGuizmos()
+void ViewportPanel::ActivateGuizmos(bool activate)
 {
-    m_scene->ForEachNode([](lum::Node3D* node)
+    m_scene->ForEachNode([&](lum::Node3D* node)
     {
         for (auto&& c : node->Components())
-            c->RegisterGuizmo();
+            activate ? c->RegisterGuizmo() : c->UnregisterGuizmo();
     });
 }
 } // sun::ui
