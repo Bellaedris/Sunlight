@@ -18,6 +18,8 @@ uniform sampler2D EmissiveTexture;
 
 uniform int hasNormals = 0;
 
+uniform vec3 albedoColor;
+uniform vec3 emissionColor;
 uniform float emissionStrength;
 
 void main() {
@@ -25,7 +27,7 @@ void main() {
     if(color.a < .1f)
         discard;
 
-    gAlbedo = color;
+    gAlbedo = color * vec4(albedoColor, 1.f);
     if(hasNormals == 0)
     {
         vec3 norm = texture(NormalsTexture, texcoord).rgb;// this is in 0..1
@@ -36,5 +38,5 @@ void main() {
         gNormal = normal;
     gPosition = vec4(position, 1.f).xyz;
     gMetalRough = texture(MetalRoughTexture, texcoord).xyz;
-    gEmissive = texture(EmissiveTexture, texcoord).xyz * emissionStrength;
+    gEmissive = texture(EmissiveTexture, texcoord).xyz * emissionColor * emissionStrength;
 }
