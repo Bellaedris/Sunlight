@@ -28,6 +28,14 @@ void SceneHierarchyPanel::Render()
 
         //scene name
         ImGui::InputText("Scene name", &node->Name());
+        if (m_state->temp.isPlaying)
+            ImGui::BeginDisabled();
+
+        if (ImGui::Button(ICON_FA_FLOPPY_O))
+        {
+            if (std::optional<std::string> activePath = m_scene->Serialize())
+                m_state->persistent.activeScenePath = activePath.value();
+        }
         ImGui::SameLine();
         if (ImGui::Button(ICON_FA_FILE_O))
         {
@@ -40,6 +48,8 @@ void SceneHierarchyPanel::Render()
         {
             m_sceneBrowser.Open();
         }
+        if (m_state->temp.isPlaying)
+            ImGui::EndDisabled();
 
         m_sceneBrowser.Display();
         if (m_sceneBrowser.HasSelected())
