@@ -38,13 +38,19 @@ function Update(dt)
 
     -- interactions
     if (IsMouseButtonPressed(MouseButton.LeftClick)) then
-        local ray = Ray(node.transform.position, t.forward, 1000);
+        local ray = Ray(t.position, t.forward, 1000);
         local res = Physics:Raycast(ray);
         if (res ~= nil) then
             -- Events.Emit("RaycastHitBroadcast")
             Message(res.node, "Interact", node, res)
         end
     end
+
+    if IsMouseButtonPressed(MouseButton.RightClick) then
+        local pipelineId = RenderSettings.activePipeline
+        RenderSettings.activePipeline = (RenderSettings.activePipeline + 1) % 2
+    end
+
 end
 
 function OnCameraRegistered(node)
