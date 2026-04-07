@@ -30,9 +30,10 @@ Sunlight::Sunlight(int width, int height)
     , m_imguiContext(std::make_unique<ImGuiContext>(m_window))
     , m_rendererManager(std::make_shared<lum::RendererManager>(width, height, m_internalEvents))
     , m_profilerGPU(std::make_shared<lum::ProfilerGPU>())
+    , m_renderSettings(std::make_unique<lum::rdr::RenderSettings>())
     , m_physicsEngine(std::make_unique<lum::PhysicsSystem>())
     , m_cameraSystem(std::make_unique<lum::CameraSystem>(width, height, m_internalEvents))
-    , m_scriptEngine(std::make_unique<lum::ScriptEngine>(m_cameraSystem.get()))
+    , m_scriptEngine(std::make_unique<lum::ScriptEngine>(m_cameraSystem.get(), m_renderSettings.get()))
     , m_systemProvider(std::make_unique<lum::SystemProvider>(m_physicsEngine.get(), m_scriptEngine.get(), m_rendererManager.get(), m_cameraSystem.get()))
     , m_scene(std::make_shared<lum::rdr::SceneDesc>(m_systemProvider.get()))
     , m_editor(std::make_unique<Editor>(m_internalEvents, m_scene, m_systemProvider.get(), m_profilerGPU))
@@ -102,15 +103,16 @@ void Sunlight::Render()
         .scene = m_scene,
         .frameIndex = m_frameIndex,
         .cameraSystem = m_cameraSystem.get(),
+        .settings = m_renderSettings.get(),
         .profilerGPU = m_profilerGPU
     };
 
-    if (lum::InputManager::IsMouseButtonPressed(lum::MouseButton::lRightClick))
-    {
-        m_profilerGPU->Reset();
-        m_rendererManager->SetActivePipeline((renderer + 1) % 2);
-        renderer += 1;
-    }
+    // if (lum::InputManager::IsMouseButtonPressed(lum::MouseButton::lRightClick))
+    // {
+    //     m_profilerGPU->Reset();
+    //     m_rendererManager->SetActivePipeline((renderer + 1) % 2);
+    //     renderer += 1;
+    // }
 
     m_scriptEngine->Update(m_deltaTime);
     m_scene->RootNode()->Update(m_deltaTime);

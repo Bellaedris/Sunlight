@@ -31,6 +31,7 @@ namespace sun
         std::shared_ptr<lum::RendererManager> m_rendererManager;
         std::shared_ptr<lum::ProfilerGPU> m_profilerGPU;
         // always create systems with ScriptEngine last
+        std::unique_ptr<lum::rdr::RenderSettings> m_renderSettings;
         std::unique_ptr<lum::PhysicsSystem> m_physicsEngine;
         std::unique_ptr<lum::CameraSystem> m_cameraSystem;
         std::unique_ptr<lum::ScriptEngine> m_scriptEngine;
