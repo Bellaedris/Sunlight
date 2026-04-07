@@ -155,6 +155,12 @@ void ViewportPanel::Render()
             if (lum::InputManager::IsKeyDown(lum::KeyCode::lKeyAlt))
                 m_state->temp.viewportCamera->ProcessMouseMovement(lum::InputManager::GetAxis());
 
+            if (lum::InputManager::IsKeyPressed(lum::KeyCode::lKeyAlt))
+                camSys->SetCursorVisible(false);
+
+            if (lum::InputManager::IsKeyReleased(lum::KeyCode::lKeyAlt))
+                camSys->SetCursorVisible(true);
+
             // get the input axes by reading pressed keys
             glm::vec3 dir(0, 0, 0);
             if(lum::InputManager::IsKeyDown(lum::KeyCode::lKeyW))
