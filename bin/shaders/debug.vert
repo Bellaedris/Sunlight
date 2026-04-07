@@ -3,6 +3,7 @@
 layout(location = 0) in vec3 iPos;
 layout(location = 1) in vec3 iColor;
 
+out vec3 viewSpacePosition;
 out vec3 color;
 
 layout(std140, binding = 0) uniform CameraData
@@ -18,5 +19,7 @@ layout(std140, binding = 0) uniform CameraData
 
 void main() {
     color = iColor;
+
+    viewSpacePosition = (viewMatrix * vec4(iPos, 1.f)).xyz;
     gl_Position = projectionMatrix * viewMatrix * vec4(iPos, 1.f);
 }

@@ -12,5 +12,5 @@ void main() {
 
     vec3 shaded = texture(ShadedNPR, uv).xyz;
     float outline = texture(Outlines, uv).x;
-    imageStore(result, texel, vec4(shaded * vec3(outline), 1.f));
+    imageStore(result, texel, vec4(shaded * outline, 1.f));
 }

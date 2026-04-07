@@ -35,7 +35,7 @@ void main() {
         gNormal = normalize(tbn * norm);// transform it to tangent space
     }
     else
-        gNormal = normal;
+        gNormal = normalize(normal);
     gPosition = vec4(position, 1.f).xyz;
     gMetalRough = texture(MetalRoughTexture, texcoord).xyz;
     gEmissive = texture(EmissiveTexture, texcoord).xyz * emissionColor * emissionStrength;

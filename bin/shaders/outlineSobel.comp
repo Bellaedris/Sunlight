@@ -1,37 +1,83 @@
 #version 460
 
 layout(rgba16f, binding = 0) readonly uniform image2D GNormal;
-layout(r16f, binding = 1) writeonly uniform image2D result;
+uniform sampler2D GDepth;
+layout(r16f, binding = 2) writeonly uniform image2D result;
 
 uniform float lineWidth;
+uniform float depthThreshold;
+
+layout(std140, binding = 0) uniform CameraData
+{
+    mat4 viewMatrix;
+    mat4 inverseViewMatrix;
+    mat4 projectionMatrix;
+    mat4 inverseProjectionMatrix;
+    vec3 cameraPosition;
+    float znear;
+    float zfar;
+};
+
+// Depth from [0; 1] to [znear; zfar]
+float LinearizeDepth(float depth)
+{
+    float z = depth * 2.f - 1.f;
+    return (2.f * znear * zfar) / (zfar + znear - z * (zfar - znear));
+}
 
 layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
 void main()
 {
     ivec2 pixel = ivec2(gl_GlobalInvocationID.xy);
+    vec2 uv = vec2(pixel) / vec2(imageSize(GNormal));
+    vec2 texelSize = 1.f / vec2(imageSize(GNormal));
 
     vec3 horizontalVec =
-    imageLoad(GNormal, pixel + ivec2(-1, -1)).xyz * 1 +
-    imageLoad(GNormal, pixel + ivec2(1, -1)).xyz * -1 +
-    imageLoad(GNormal, pixel + ivec2(-1, 0)).xyz * 2 +
-    imageLoad(GNormal, pixel + ivec2(1, 0)).xyz * -2 +
-    imageLoad(GNormal, pixel + ivec2(-1, 1)).xyz * 1 +
-    imageLoad(GNormal, pixel + ivec2(1, 1)).xyz * -1;
-    float horizontal = horizontalVec.x + horizontalVec.y + horizontalVec.z;
+        imageLoad(GNormal, pixel + ivec2(-1, -1)).xyz * 1 +
+        imageLoad(GNormal, pixel + ivec2(1, -1)).xyz * -1 +
+        imageLoad(GNormal, pixel + ivec2(-1, 0)).xyz * 2 +
+        imageLoad(GNormal, pixel + ivec2(1, 0)).xyz * -2 +
+        imageLoad(GNormal, pixel + ivec2(-1, 1)).xyz * 1 +
+        imageLoad(GNormal, pixel + ivec2(1, 1)).xyz * -1;
+    float horizontal = length(horizontalVec);
 
     vec3 verticalVec =
-    imageLoad(GNormal, pixel + ivec2(-1, -1)).xyz * 1 +
-    imageLoad(GNormal, pixel + ivec2(0, -1)).xyz * 2 +
-    imageLoad(GNormal, pixel + ivec2(1, -1)).xyz * 1 +
-    imageLoad(GNormal, pixel + ivec2(-1, 1)).xyz * -1 +
-    imageLoad(GNormal, pixel + ivec2(0, 1)).xyz * -2 +
-    imageLoad(GNormal, pixel + ivec2(1, 1)).xyz * -1;
-    float vertical = verticalVec.x + verticalVec.y + verticalVec.z;
+        imageLoad(GNormal, pixel + ivec2(-1, -1)).xyz * 1 +
+        imageLoad(GNormal, pixel + ivec2(0, -1)).xyz * 2 +
+        imageLoad(GNormal, pixel + ivec2(1, -1)).xyz * 1 +
+        imageLoad(GNormal, pixel + ivec2(-1, 1)).xyz * -1 +
+        imageLoad(GNormal, pixel + ivec2(0, 1)).xyz * -2 +
+        imageLoad(GNormal, pixel + ivec2(1, 1)).xyz * -1;
+    float vertical = length(verticalVec);
 
     float conv = sqrt(horizontal * horizontal + vertical * vertical);
+    float normalStep = step(lineWidth, conv);
 
-    if(conv > lineWidth)
-        imageStore(result, pixel, vec4(.0f));
-    else
-        imageStore(result, pixel, vec4(1.f));
+    // also test depth, if we are not in the skybox (it can cause instabilities)
+    float depth = texture(GDepth, uv).x;
+    float depthStep = .0f;
+    if(depth < 1.f)
+    {
+        float horizontalDepth =
+            LinearizeDepth(texture(GDepth, uv + vec2(-1, -1) * texelSize).x) * 1 +
+            LinearizeDepth(texture(GDepth, uv + vec2(1, -1) * texelSize).x) * -1 +
+            LinearizeDepth(texture(GDepth, uv + vec2(-1, 0) * texelSize).x) * 2 +
+            LinearizeDepth(texture(GDepth, uv + vec2(1, 0)  * texelSize).x) * -2 +
+            LinearizeDepth(texture(GDepth, uv + vec2(-1, 1) * texelSize).x) * 1 +
+            LinearizeDepth(texture(GDepth, uv + vec2(1, 1)  * texelSize).x) * -1;
+
+        float verticalDepth =
+            LinearizeDepth(texture(GDepth, uv + vec2(-1, -1) * texelSize).x) * 1 +
+            LinearizeDepth(texture(GDepth, uv + vec2(0, -1)  * texelSize).x) * 2 +
+            LinearizeDepth(texture(GDepth, uv + vec2(1, -1)  * texelSize).x) * 1 +
+            LinearizeDepth(texture(GDepth, uv + vec2(-1, 1)  * texelSize).x) * -1 +
+            LinearizeDepth(texture(GDepth, uv + vec2(0, 1)   * texelSize).x) * -2 +
+            LinearizeDepth(texture(GDepth, uv + vec2(1, 1)   * texelSize).x) * -1;
+
+        float convDepth = sqrt(horizontalDepth * horizontalDepth + verticalDepth * verticalDepth);
+        depthStep = step(depthThreshold, convDepth);
+    }
+
+    float edge = max(normalStep, depthStep);
+    imageStore(result, pixel, vec4(1.f - edge));
 }

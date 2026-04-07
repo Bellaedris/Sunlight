@@ -39,6 +39,8 @@ layout(std140, binding = 2) uniform DirectionalLights
 };
 uniform int dirLightCount;
 
+uniform float sketchTextureTiling;
+
 float Posterize(float cosTheta)
 {
     return step(.25f, cosTheta) * .25f +
@@ -46,17 +48,52 @@ float Posterize(float cosTheta)
     step(.75f, cosTheta) * .75f;
 }
 
-vec3 CalculateSketchingFactor(DirectionalLight l, vec3 normal)
+float CalculateSketchingFactor(float luminance)
 {
-    float cosTheta = max(dot(normalize(-l.direction), normal), .0f);
+    vec3 pencilMask = texture(PencilShadows, texcoord * sketchTextureTiling).xyz;
 
-    vec3 pencilMask = texture(PencilShadows, texcoord * 15.f).xyz;
+    float pencil = max(max(step(luminance, .25f) * pencilMask.b,
+    step(luminance, .5f) * pencilMask.r),
+    step(luminance, .75f) * pencilMask.g);
 
-    float pencil = max(max(step(cosTheta, .25f) * pencilMask.b,
-    step(cosTheta, .5f) * pencilMask.r),
-    step(cosTheta, .75f) * pencilMask.g);
+    return (1.f - pencil);
+}
 
-    return (1.f - pencil) * l.color;
+vec3 CalculateDirectionalLight(vec3 normal, inout float luminance)
+{
+    vec3 col = vec3(.0f);
+    for(int i = 0; i < dirLightCount; i++)
+    {
+        DirectionalLight l = dirLightData[i];
+        vec3 radiance = l.color * l.intensity;
+        float cosTheta = max(dot(normalize(-l.direction), normal), .0f);
+        luminance += cosTheta * l.intensity;
+        col += cosTheta * radiance;
+    }
+
+    return col;
+}
+
+vec3 CalculatePointLight(vec3 pos, vec3 normal, inout float luminance)
+{
+    vec3 col = vec3(.0f);
+    for(int i = 0; i < pointLightCount; i++)
+    {
+        PointLight l = pointLightData[i];
+        vec3 lightDir = normalize(l.position - pos);
+        // attenuation uses https://www.cemyuksel.com/research/pointlightattenuation/
+        float dist = distance(pos, l.position);
+        float d2 = dist * dist;
+        float r2 = l.radius * l.radius;
+        float attenuation = l.intensity * (2.f / (d2 + r2 + dist * sqrt(d2 + r2)));
+        vec3 radiance = l.color * attenuation;
+
+        float cosTheta = max(dot(normalize(lightDir), normal), .0f);
+        luminance += cosTheta * attenuation;
+        col += cosTheta * radiance;
+    }
+
+    return col;
 }
 
 void main() {
@@ -69,10 +106,10 @@ void main() {
         discard; // we discard the skybox for now
 
     vec3 color = vec3(0, 0, 0);
-    for(int i = 0; i < dirLightCount; i++)
-    {
-        color += gAlbedo * CalculateSketchingFactor(dirLightData[i], gNormal);
-    }
+    float luminance = .0f;
+    color += gAlbedo * CalculateDirectionalLight(gNormal, luminance);
+    color += gAlbedo * CalculatePointLight(gPos, gNormal, luminance);
+    color = color * CalculateSketchingFactor(luminance);
 
     FragColor = vec4(color, 1.f);
 }
