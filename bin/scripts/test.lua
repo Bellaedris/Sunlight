@@ -1,13 +1,12 @@
 local elapsed = 0
 
 function Start()
-    print("starting")
     Events.Subscribe("RaycastHit", OnRaycastHitBroadcast)
 end
 
 function Update(dt)
     -- t.position = vec3(t.position.x, t.position.y, math.cos(elapsed * 5) * 10)
-    -- t.localPosition = vec3(0, math.sin(elapsed), math.cos(elapsed))
+    node.transform.position = vec3(0, math.sin(elapsed), math.cos(elapsed))
     --t:Translate(vec3(0, dt, 0))
     elapsed = elapsed + dt
 end

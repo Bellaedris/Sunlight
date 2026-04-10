@@ -41,7 +41,6 @@ function Update(dt)
         local ray = Ray(t.position, t.forward, 1000);
         local res = Physics:Raycast(ray);
         if (res ~= nil) then
-            -- Events.Emit("RaycastHitBroadcast")
             Message(res.node, "Interact", node, res)
         end
     end
