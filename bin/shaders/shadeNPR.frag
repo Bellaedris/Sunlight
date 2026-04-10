@@ -88,7 +88,7 @@ vec3 CalculatePointLight(vec3 pos, vec3 normal, inout float luminance)
         float attenuation = l.intensity * (2.f / (d2 + r2 + dist * sqrt(d2 + r2)));
         vec3 radiance = l.color * attenuation;
 
-        float cosTheta = max(dot(normalize(lightDir), normal), .0f);
+        float cosTheta = max(dot(lightDir, normal), .0f);
         luminance += cosTheta * attenuation;
         col += cosTheta * radiance;
     }
@@ -100,9 +100,9 @@ void main() {
     vec3 gAlbedo = texture(GBufferAlbedo, texcoord).xyz;
     vec3 gNormal = texture(GBufferNormals, texcoord).xyz;
     vec3 gPos = texture(GBufferPositions, texcoord).xyz;
-    vec3 gDepth = texture(GBufferDepth, texcoord).xyz;
+    float gDepth = texture(GBufferDepth, texcoord).x;
 
-    if(gDepth.r >= 1.f)
+    if(gDepth >= 1.f)
         discard; // we discard the skybox for now
 
     vec3 color = vec3(0, 0, 0);
