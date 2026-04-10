@@ -152,13 +152,13 @@ void ViewportPanel::Render()
         if ((camSys->CurrentMode() == lum::CameraSystem::Editor || camSys->CurrentMode() ==
              lum::CameraSystem::EditorInPlay) && ImGui::IsWindowFocused())
         {
-            if (lum::InputManager::IsKeyDown(lum::KeyCode::lKeyAlt))
+            if (lum::InputManager::IsMouseButtonDown(lum::MouseButton::lRightClick))
                 m_state->temp.viewportCamera->ProcessMouseMovement(lum::InputManager::GetAxis());
 
-            if (lum::InputManager::IsKeyPressed(lum::KeyCode::lKeyAlt))
+            if (lum::InputManager::IsMouseButtonPressed(lum::MouseButton::lRightClick))
                 camSys->SetCursorVisible(false);
 
-            if (lum::InputManager::IsKeyReleased(lum::KeyCode::lKeyAlt))
+            if (lum::InputManager::IsMouseButtonReleased(lum::MouseButton::lRightClick))
                 camSys->SetCursorVisible(true);
 
             // get the input axes by reading pressed keys
