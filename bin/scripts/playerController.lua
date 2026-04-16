@@ -7,10 +7,17 @@ local speed = 10.
 local rb
 local camera
 
+local isoPresets = {1. / 256., 1. / 64., 1. / 32., 1. / 8., 1. / 2., 1., 2., 4., 8., 16., 32.}
+local currentIsoPreset = 6
+
+local ISOUIButton
+
 function Start()
+    RenderSettings.cameraSensorIso = isoPresets[currentIsoPreset]
     SetCursorVisible(false)
     rb = node:GetRigidbodyComponent();
     Events.Subscribe("CameraRegistered", OnCameraRegistered)
+    Events.Subscribe("UIButtonRegister", OnUIButtonRegister)
 end
 
 function Update(dt)
@@ -37,11 +44,33 @@ function Update(dt)
     rb:AddForce(movement * speed)
 
     -- interactions
-    if (IsMouseButtonPressed(MouseButton.LeftClick)) then
+    if (RenderSettings.activePipeline == 1 and IsMouseButtonPressed(MouseButton.LeftClick)) then
         local ray = Ray(t.position, t.forward, 1000);
         local res = Physics:Raycast(ray);
         if (res ~= nil) then
             Message(res.node, "Interact", node, res)
+        end
+    end
+
+    if RenderSettings.activePipeline == 0 then
+        if IsMouseButtonPressed(MouseButton.LeftClick) then
+            RenderSettings.accumulate = true;
+        end
+
+        if IsMouseButtonReleased(MouseButton.LeftClick) then
+            RenderSettings.accumulate = false;
+        end
+
+        if IsKeyPressed(KeyCode.Q) then
+            currentIsoPreset = math.max(1, currentIsoPreset - 1)
+            RenderSettings.cameraSensorIso = isoPresets[currentIsoPreset]
+            Message(ISOUIButton, "UIUpdate", currentIsoPreset - 6)
+        end
+
+        if IsKeyPressed(KeyCode.E) then
+            currentIsoPreset = math.min(#isoPresets, currentIsoPreset + 1)
+            RenderSettings.cameraSensorIso = isoPresets[currentIsoPreset]
+            Message(ISOUIButton, "UIUpdate", currentIsoPreset - 6)
         end
     end
 
@@ -54,4 +83,10 @@ end
 
 function OnCameraRegistered(node)
     camera = node
+end
+
+function OnUIButtonRegister(node)
+    if node.name == "ISO handle" then
+        ISOUIButton = node
+    end
 end
