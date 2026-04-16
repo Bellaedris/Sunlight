@@ -11,6 +11,7 @@
 #include "Lumiere/Components/Rigidbody.h"
 #include "Lumiere/Components/Script.h"
 #include "Lumiere/Components/SphereCollider.h"
+#include "Lumiere/Components/UIElement.h"
 #include "imgui/IconsFontAwesome4.h"
 #include "imgui/ImGuizmo.h"
 #include "imgui/imgui_internal.h"
@@ -88,6 +89,50 @@ void InspectorPanel::Render()
                     if (renderer->Mesh() != nullptr)
                     {
                         DrawMeshDetails(renderer);
+                    }
+                }
+            );
+
+            // UIElement
+            ComponentInspectorNode<lum::comp::UIElement>(
+                node,
+                "UI Element",
+                ICON_FA_WINDOW_MAXIMIZE,
+                flags,
+                [&](lum::comp::UIElement* ui)
+                {
+                    if (ImGui::Button("Load UI Mesh from file"))
+                    {
+                        // load a mesh from file/resourcesManager
+                        m_fileBrowser.Open();
+                    }
+
+                    m_fileBrowser.Display();
+                    if (m_fileBrowser.HasSelected())
+                    {
+                        ui->SetMesh(m_fileBrowser.GetSelected().string());
+                        m_fileBrowser.ClearSelected();
+                    }
+                    ImGui::PushID("Asset selection");
+                    if (ImGui::BeginCombo("", "Asset selection"))
+                    {
+                        std::vector<std::pair<std::string, std::string>> resources = lum::ResourcesManager::Instance()->MeshNames();
+                        for (const auto& resource : resources)
+                        {
+                            bool selected = false;
+                            if (ui->Mesh() != nullptr && ui->Mesh()->Name() == resource.second)
+                                selected = true;
+                            if (ImGui::Selectable(resource.second.c_str(), selected))
+                                ui->SetMesh(resource.first);
+                            if (selected)
+                                ImGui::SetItemDefaultFocus();
+                        }
+                        ImGui::EndCombo();
+                    }
+                    ImGui::PopID();
+                    if (ui->Mesh() != nullptr)
+                    {
+                        DrawUIDetails(ui);
                     }
                 }
             );
@@ -270,6 +315,7 @@ void InspectorPanel::Render()
                 ComponentCreationButton<lum::comp::BoxCollider>(node, "Box Collider", ICON_FA_CUBE);
                 ComponentCreationButton<lum::comp::SphereCollider>(node, "Sphere Collider", ICON_FA_CIRCLE);
                 ComponentCreationButton<lum::comp::Camera>(node, "Camera", ICON_FA_VIDEO_CAMERA);
+                ComponentCreationButton<lum::comp::UIElement>(node, "UI Element", ICON_FA_WINDOW_MAXIMIZE);
                 ImGui::EndPopup();
             }
         }
@@ -332,6 +378,24 @@ void InspectorPanel::DrawMeshDetails(lum::comp::MeshRenderer *renderer)
     }
 }
 
+void InspectorPanel::DrawUIDetails(lum::comp::UIElement *ui)
+{
+    ImGui::Text("Current Mesh: %s", ui->Mesh()->Name().c_str());
+    if (ImGui::TreeNodeEx("Submeshes", ImGuiTreeNodeFlags_DrawLinesFull))
+    {
+        std::vector<lum::gfx::SubMesh>& submeshes = ui->Mesh()->Primitives();
+        for (auto& submesh : submeshes)
+        {
+            if (ImGui::TreeNodeEx(submesh.Name().c_str(), ImGuiTreeNodeFlags_DrawLinesFull))
+            {
+                submesh.Material()->DrawEditor();
+                ImGui::TreePop();
+            }
+        }
+        ImGui::TreePop();
+    }
+}
+
 void InspectorPanel::TransformSlider(
         const char *name,
         glm::vec3 vector,
@@ -358,7 +422,7 @@ void InspectorPanel::TransformSlider(
                 updateVector(glm::vec3(defaultValue, vector.y, vector.z));
             }
             ImGui::SameLine();
-            if (ImGui::DragFloat("##X", &vector.x, 0.5f))
+            if (ImGui::DragFloat("##X", &vector.x, 0.01f, 0, 0, "%.6f"))
             {
                 updateVector(vector);
             }
@@ -372,7 +436,7 @@ void InspectorPanel::TransformSlider(
                 updateVector(glm::vec3(vector.x, defaultValue, vector.z));
             }
             ImGui::SameLine();
-            if (ImGui::DragFloat("##Y", &vector.y, 0.5f))
+            if (ImGui::DragFloat("##Y", &vector.y, 0.01f, 0, 0, "%.6f"))
             {
                 updateVector(vector);
             }
@@ -387,7 +451,7 @@ void InspectorPanel::TransformSlider(
                 updateVector(glm::vec3(vector.x, vector.y, defaultValue));
             }
             ImGui::SameLine();
-            if (ImGui::DragFloat("##Z", &vector.z, 0.5f))
+            if (ImGui::DragFloat("##Z", &vector.z, 0.01f, 0, 0, "%.6f"))
             {
                 updateVector(vector);
             }

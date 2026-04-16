@@ -6,6 +6,7 @@
 #include "IEditorPanel.h"
 #include "../EditorState.h"
 #include "Lumiere/Components/MeshRenderer.h"
+#include "Lumiere/Components/UIElement.h"
 #include "imgui/IconsFontAwesome4.h"
 #include "imgui/imfilebrowser.h"
 
@@ -21,6 +22,7 @@ private:
 
     void DrawTransformInspector(lum::comp::Transform* transform, ImGuiTreeNodeFlags flags);
     void DrawMeshDetails(lum::comp::MeshRenderer* renderer);
+    void DrawUIDetails(lum::comp::UIElement *ui);
     void TransformSlider(const char* name, glm::vec3 vector, float defaultValue, std::function<void(const glm::vec3&)> updateVector);
 
     template<typename T>
