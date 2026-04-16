@@ -114,7 +114,7 @@ void ViewportPanel::Render()
 
             ImVec2 pos = ImGui::GetWindowPos();
             ImGuizmo::SetDrawlist(ImGui::GetCurrentWindow()->DrawList);
-            ImGuizmo::SetRect(pos.x, pos.y, availableSize.x, availableSize.y - iconSize);
+            ImGuizmo::SetRect(pos.x, pos.y + iconSize * 2., availableSize.x, availableSize.y - iconSize);
             lum::comp::Transform* t = selected->GetTransform();
             bool manipulated = ImGuizmo::Manipulate(
                     glm::value_ptr(camSys->CameraData().viewMatrix),
@@ -134,6 +134,9 @@ void ViewportPanel::Render()
                 t->SetPosition(position);
                 t->SetRotation(rotation);
                 t->SetScale(scale);
+
+                for (auto&& c : selected->Components())
+                    c->RegisterGuizmo();
             }
         }
 
