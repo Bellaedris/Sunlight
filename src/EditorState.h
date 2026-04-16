@@ -16,7 +16,10 @@ namespace sun
 struct EditorState
 {
     #pragma region Constants
-    constexpr static int EDITOR_STATE_SERIALIZER_VERSION = 1;
+    /**
+     * \brief Version history: 2 adds editor camera position
+     */
+    constexpr static int EDITOR_STATE_SERIALIZER_VERSION = 2;
     constexpr static const char* EDITOR_CONFIG_PATH = "config/EditorCfg.yaml";
     #pragma endregion // Constants
 
