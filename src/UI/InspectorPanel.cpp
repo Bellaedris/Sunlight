@@ -363,16 +363,18 @@ void InspectorPanel::DrawTransformInspector(lum::comp::Transform* transform, ImG
 void InspectorPanel::DrawMeshDetails(lum::comp::MeshRenderer *renderer)
 {
     ImGui::Text("Current Mesh: %s", renderer->Mesh()->Name().c_str());
-    if (ImGui::TreeNodeEx("Submeshes", ImGuiTreeNodeFlags_DrawLinesFull))
+    if (ImGui::TreeNodeEx("Materials", ImGuiTreeNodeFlags_DrawLinesFull))
     {
-        std::vector<lum::gfx::SubMesh>& submeshes = renderer->Mesh()->Primitives();
-        for (auto& submesh : submeshes)
+        std::vector<lum::gfx::MaterialPtr>& materials = renderer->Materials();
+        for (int i = 0; i < materials.size(); i++)
         {
-            if (ImGui::TreeNodeEx(submesh.Name().c_str(), ImGuiTreeNodeFlags_DrawLinesFull))
+            ImGui::PushID(i);
+            if (ImGui::TreeNodeEx(materials[i]->Name().c_str()))
             {
-                submesh.Material()->DrawEditor();
+                materials[i]->DrawEditor();
                 ImGui::TreePop();
             }
+            ImGui::PopID();
         }
         ImGui::TreePop();
     }
@@ -388,7 +390,7 @@ void InspectorPanel::DrawUIDetails(lum::comp::UIElement *ui)
         {
             if (ImGui::TreeNodeEx(submesh.Name().c_str(), ImGuiTreeNodeFlags_DrawLinesFull))
             {
-                submesh.Material()->DrawEditor();
+                lum::ResourcesManager::Instance()->GetMaterial(submesh.DefaultMat())->get()->DrawEditor();
                 ImGui::TreePop();
             }
         }
