@@ -371,6 +371,23 @@ void InspectorPanel::DrawMeshDetails(lum::comp::MeshRenderer *renderer)
             ImGui::PushID(i);
             if (ImGui::TreeNodeEx(materials[i]->Name().c_str()))
             {
+                ImGui::PushID("Material selection");
+                if (ImGui::BeginCombo("", "Material selection"))
+                {
+                    std::vector<std::string> resources = lum::ResourcesManager::Instance()->MaterialNames();
+                    for (const auto& resource : resources)
+                    {
+                        bool selected = false;
+                        if (renderer->Materials().empty() == false && renderer->Materials()[i]->Name() == resource)
+                            selected = true;
+                        if (ImGui::Selectable(resource.c_str(), selected))
+                            renderer->SetMaterial(i, resource);
+                        if (selected)
+                            ImGui::SetItemDefaultFocus();
+                    }
+                    ImGui::EndCombo();
+                }
+                ImGui::PopID();
                 materials[i]->DrawEditor();
                 ImGui::TreePop();
             }
