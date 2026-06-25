@@ -12,11 +12,18 @@ local elapsed = 0
 local t
 
 local sqrt2 = math.sqrt(2)
+local mob = MaterialOverrideBlock()
 
 function Start()
     movementType = node.name
     t = node.transform
     initialPosition = vec3(t.position)
+    local mr = node:GetMeshComponent()
+
+    mob:SetVector("albedoColor", vec3(1., 0., 0.))
+    mob:SetVector("emissionColor", vec3(1, 0, 0))
+    mob:SetFloat("emissionStrength", 250.)
+    mr:SetMaterialOverrideBlock(mob)
 end
 
 function Update(dt)
@@ -35,7 +42,7 @@ function Update(dt)
 end
 
 function MoveHorizontal()
-    t.position = initialPosition + vec3(0, 0, math.cos(elapsed * moveSpeed)) * moveAmplitude
+    t.position = initialPosition + vec3(0, 0, math.cos(elapsed * moveSpeed) * 0.7) * moveAmplitude
 end
 
 function MoveVertical()

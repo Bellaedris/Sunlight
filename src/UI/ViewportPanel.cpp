@@ -47,6 +47,7 @@ void ViewportPanel::Render()
                     // scene has reloaded, register the guizmos again
                     ActivateGuizmos(true);
                     m_state->temp.systems->m_camera->SetCursorVisible(true);
+                    m_state->temp.systems->m_renderer->DebugPass()->DrawGrid(true);
                 }
                 else
                 {
@@ -56,6 +57,7 @@ void ViewportPanel::Render()
                         m_state->persistent.activeScenePath = activePath.value();
                     m_scene->OnPlay();
                     ActivateGuizmos(false);
+                    m_state->temp.systems->m_renderer->DebugPass()->DrawGrid(false);
                 }
                 m_state->temp.isPlaying = !m_state->temp.isPlaying;
             }

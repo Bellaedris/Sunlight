@@ -1,0 +1,52 @@
+version: 1
+name: pipelinePBR
+passes:
+  - name: SHADE_PBR
+    width: 1846
+    height: 947
+  - name: CAMERA_SENSOR
+    width: 1846
+    height: 947
+    iso: 1
+  - name: BLOOM
+    width: 1846
+    height: 947
+    intensity: 0.206
+  - name: DOF
+    width: 1846
+    height: 947
+    focusDistance: 1
+    focusRange: 10
+    expansionSize: 5
+    expansionBlur: 5
+  - name: TONEMAP
+    width: 1846
+    height: 947
+    technique: 1
+    gamma: 2.2
+  - name: CHROMATIC_ABERRATION
+    width: 1846
+    height: 947
+    samples: 20
+    intensity: 0.214
+    exponent: 2.071
+  - name: COLOR_ADJUSTMENTS
+    width: 1846
+    height: 947
+    postExposure: 0.045
+    contrast: -0
+    saturation: 0.732
+  - name: LENS_DISTORTION
+    width: 1846
+    height: 947
+    intensityX: 1
+    intensityY: 1
+    centerX: 0
+    centerY: 0
+    distortionIntensity: 26.893
+    screenScale: 1
+  - name: VIGNETTE_MASK
+    width: 1846
+    height: 947
+    radius: 1.401
+    tightness: 1

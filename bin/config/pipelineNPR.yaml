@@ -1,0 +1,13 @@
+version: 1
+name: pipelineNPR
+passes:
+  - name: OUTLINE_SOBEL
+    width: 1846
+    height: 947
+    lineWidth: 1
+  - name: SHADE_NPR
+    width: 1846
+    height: 947
+  - name: COMPOSITE_NPR
+    width: 1846
+    height: 947

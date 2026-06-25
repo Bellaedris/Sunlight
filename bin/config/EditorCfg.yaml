@@ -1,0 +1,8 @@
+version: 2
+activeScene: Assets/TestScene.lumsc
+cameraPosition:
+  - -9.627664
+  - 1.2534215
+  - 1.0040354
+cameraPitch: -8
+cameraYaw: -5
